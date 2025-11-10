@@ -1,0 +1,110 @@
+/*
+Theme Name: healingjourney-seo
+Theme URI: https://milos.live/wp-themes
+Author: Milos M.
+Author URI: ttps://milos.live
+Description: Multi-site SEO dashboard theme for monitoring medical-travel websites.
+Version: 1.0.0
+Requires at least: 6.2
+Tested up to: 6.6
+Requires PHP: 8.1
+Text Domain: healingjourney-seo
+License: GPL-2.0-or-later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
+*/
+
+/* Design Tokens */
+:root {
+  --accent: #00343b;       /* dark green */
+  --accent-600: #024e56;
+  --bg: #0b1112;           /* near black */
+  --bg-elev: #111819;
+  --card: #151f21;
+  --text: #e6f2f3;
+  --muted: #9bb1b4;
+  --ok: #38b000;
+  --warn: #ffb703;
+  --err: #ef476f;
+  --radius: 12px;
+  --shadow: 0 8px 24px rgba(0,0,0,.25);
+}
+
+/* Base */
+body.hjseo {
+  margin: 0; padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.6 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}
+
+.container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+
+h1, h2, h3 { color: var(--text); margin: 0 0 12px; }
+
+a { color: #7fd3da; text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* Cards */
+.card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px; }
+.card + .card { margin-top: 16px; }
+.card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+
+/* Grid */
+.grid { display: grid; gap: 16px; }
+.grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 1024px) { .grid-cols-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .grid-cols-2, .grid-cols-3, .grid-cols-4 { grid-template-columns: 1fr; } }
+
+/* Metrics */
+.metrics { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
+.metric { background: var(--bg-elev); border-radius: 10px; padding: 10px; text-align: center; }
+.metric .label { color: var(--muted); font-size: 12px; }
+.metric .value { font-size: 18px; font-weight: 700; }
+
+/* Tables */
+.table-wrap { overflow-x: auto; background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); }
+.table { width: 100%; border-collapse: collapse; }
+.table th, .table td { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.table th { text-align: left; color: var(--muted); font-weight: 600; background: #132022; position: sticky; top: 0; }
+.table tr:hover td { background: rgba(255,255,255,0.02); }
+
+/* Tabs */
+.tabs { display: flex; gap: 8px; margin: 16px 0; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.tab { padding: 10px 14px; border-radius: 10px 10px 0 0; background: transparent; color: var(--muted); cursor: pointer; border: none; }
+.tab.active { background: var(--accent); color: white; }
+.tabpanel { display: none; }
+.tabpanel.active { display: block; }
+
+/* Forms */
+.input, select, .btn { background: var(--bg-elev); color: var(--text); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 8px 10px; }
+.btn { background: var(--accent); border: none; cursor: pointer; }
+.btn:hover { background: var(--accent-600); }
+
+/* Header */
+.site-header { background: linear-gradient(0deg, rgba(0,0,0,.0), rgba(0,0,0,.25)), var(--accent); padding: 18px 0; box-shadow: var(--shadow); }
+.site-header .container { display: flex; align-items: center; justify-content: space-between; }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 800; }
+.brand .dot { width: 10px; height: 10px; border-radius: 50%; background: #7fd3da; display: inline-block; }
+
+/* Utilities */
+.m-0 { margin: 0; }
+.mt-16 { margin-top: 16px; }
+.mt-24 { margin-top: 24px; }
+.flex { display: flex; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.small { font-size: 12px; color: var(--muted); }
+
+/* Keyword intent chips */
+.intent { display: inline-block; padding: 4px 8px; border-radius: 999px; font-size: 12px; }
+.intent.info { background: #0b7285; }
+.intent.buy { background: #6a994e; }
+.intent.nav { background: #3a86ff; }
+.intent.learn { background: #8338ec; }
+
+/* Timeline */
+.timeline { border-left: 2px solid var(--accent); margin-left: 8px; padding-left: 16px; }
+.timeline-item { margin: 12px 0; }
+.timeline-item .title { font-weight: 700; }
