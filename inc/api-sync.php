@@ -87,6 +87,15 @@ add_action('admin_notices', function(){
     global $pagenow, $post;
     if ($pagenow !== 'post.php') return;
     if (!$post || $post->post_type !== 'seo_site') return;
+    // Notice from on-demand refresh
+    if (isset($_GET['hjseo_site_sync'])) {
+        if ($_GET['hjseo_site_sync'] === 'ok') {
+            echo '<div class="notice notice-success"><p>Metrics refreshed successfully.</p></div>';
+        } elseif ($_GET['hjseo_site_sync'] === 'fail') {
+            $msg = isset($_GET['msg']) ? sanitize_text_field(wp_unslash($_GET['msg'])) : 'Unknown error';
+            echo '<div class="notice notice-error"><p>Refresh failed: ' . esc_html($msg) . '</p></div>';
+        }
+    }
     $msg = get_transient('hjseo_last_sync_error_' . $post->ID);
     if ($msg) {
         echo '<div class="notice notice-error"><p><strong>HealingJourney SEO Auto-Sync Error:</strong> ' . esc_html($msg) . '</p></div>';
