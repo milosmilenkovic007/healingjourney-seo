@@ -16,8 +16,9 @@ get_header();
     if ($q->have_posts()):
       echo '<div class="grid grid-cols-3 mt-16">';
       while ($q->have_posts()): $q->the_post();
-        $metrics = hjseo_get_site_metrics(get_the_ID());
-  $domain = hjseo_field('domain');
+  $metrics = hjseo_get_site_metrics(get_the_ID());
+  $domain = hjseo_field('site_domain');
+  if (!$domain) { $domain = hjseo_field('domain'); }
         echo '<div class="card">';
         echo '<div class="card-header"><h3 class="m-0"><a href="' . esc_url('/site/' . sanitize_title($post->post_name)) . '">' . esc_html(get_the_title()) . '</a></h3><span class="small">' . esc_html($domain) . '</span></div>';
         echo hjseo_render_metrics_row($metrics);

@@ -15,7 +15,7 @@ get_header();
 </header>
 <main class="container">
   <h1 class="m-0"><?php echo esc_html($site->post_title); ?></h1>
-  <div class="small"><?php echo esc_html(hjseo_field('domain', $site->ID)); ?></div>
+  <div class="small"><?php echo esc_html(hjseo_field('site_domain', $site->ID) ?: hjseo_field('domain', $site->ID)); ?></div>
   <div class="mt-16 card">
     <?php echo hjseo_render_metrics_row(hjseo_get_site_metrics($site->ID)); ?>
   </div>
@@ -28,7 +28,7 @@ get_header();
 
   <section id="tab-reports" class="tabpanel active">
     <?php
-      $r = new WP_Query(['post_type' => 'seo_report', 'posts_per_page' => -1, 'meta_query' => [ [ 'key' => 'site', 'value' => $site->ID ] ], 'orderby' => 'date', 'order' => 'DESC']);
+  $r = new WP_Query(['post_type' => 'seo_report', 'posts_per_page' => -1, 'meta_query' => [ [ 'key' => 'related_site', 'value' => $site->ID ] ], 'orderby' => 'date', 'order' => 'DESC']);
       if ($r->have_posts()):
         echo '<div class="table-wrap"><table class="table"><thead><tr><th>Month</th><th>Technical</th><th>On-page</th><th>Backlinks</th><th>Summary</th></tr></thead><tbody>';
         while ($r->have_posts()): $r->the_post();
@@ -50,7 +50,7 @@ get_header();
 
   <section id="tab-keywords" class="tabpanel">
     <?php
-      $k = new WP_Query(['post_type' => 'keyword_map', 'posts_per_page' => 1, 'meta_query' => [ [ 'key' => 'site', 'value' => $site->ID ] ], 'orderby' => 'date', 'order' => 'DESC']);
+  $k = new WP_Query(['post_type' => 'keyword_map', 'posts_per_page' => 1, 'meta_query' => [ [ 'key' => 'related_site', 'value' => $site->ID ] ], 'orderby' => 'date', 'order' => 'DESC']);
       if ($k->have_posts()):
         $k->the_post();
   $rows = hjseo_field('keywords');
@@ -81,7 +81,7 @@ get_header();
 
   <section id="tab-content" class="tabpanel">
     <?php
-      $c = new WP_Query(['post_type' => 'content_plan', 'posts_per_page' => -1, 'meta_query' => [ [ 'key' => 'site', 'value' => $site->ID ] ], 'orderby' => 'date', 'order' => 'DESC']);
+  $c = new WP_Query(['post_type' => 'content_plan', 'posts_per_page' => -1, 'meta_query' => [ [ 'key' => 'related_site', 'value' => $site->ID ] ], 'orderby' => 'date', 'order' => 'DESC']);
       if ($c->have_posts()): echo '<div class="timeline">';
         while ($c->have_posts()): $c->the_post();
           echo '<div class="timeline-item">'

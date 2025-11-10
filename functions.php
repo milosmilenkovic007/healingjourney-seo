@@ -45,7 +45,13 @@ $hjseo_includes = [
     '/inc/shortcodes.php',
     '/inc/rewrite.php',
     '/inc/dashboard.php',
+    '/inc/moz-api.php',
+    '/inc/gsc-api.php',
+    '/inc/api-sync.php',
+    '/inc/settings.php',
+    '/inc/admin-columns.php',
     '/inc/media.php',
+    '/inc/seed.php',
 ];
 foreach ($hjseo_includes as $file) {
     $path = HJSEO_DIR . $file;

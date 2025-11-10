@@ -26,13 +26,31 @@ function hjseo_avg($arr) {
   return array_sum($arr)/count($arr);
 }
 
+// Update ACF/meta field wrapper to write values regardless of ACF presence
+function hjseo_update_field_value($key, $value, $post_id) {
+  if (function_exists('update_field')) {
+    return update_field($key, $value, $post_id);
+  }
+  return update_post_meta($post_id, $key, $value);
+}
+
 function hjseo_get_site_metrics($site_id) {
+  // Support new canonical keys first, then legacy fallback
+  $authority = hjseo_field('authority', $site_id);
+  if ($authority === '' || $authority === null) $authority = hjseo_field('authority_score', $site_id);
+
+  $backlinks = hjseo_field('backlinks', $site_id);
+  $ref_domains = hjseo_field('ref_domains', $site_id);
+  if ($ref_domains === '' || $ref_domains === null) $ref_domains = hjseo_field('referring_domains', $site_id);
+  $keywords = hjseo_field('keywords', $site_id);
+  if ($keywords === '' || $keywords === null) $keywords = hjseo_field('keywords_count', $site_id);
+  $visibility = hjseo_field('visibility', $site_id);
   return [
-    'authority' => hjseo_field('authority_score', $site_id),
-    'backlinks' => hjseo_field('backlinks', $site_id),
-    'ref_domains' => hjseo_field('referring_domains', $site_id),
-    'keywords' => hjseo_field('keywords_count', $site_id),
-    'visibility' => hjseo_field('visibility', $site_id),
+    'authority' => $authority,
+    'backlinks' => $backlinks,
+    'ref_domains' => $ref_domains,
+    'keywords' => $keywords,
+    'visibility' => $visibility,
   ];
 }
 

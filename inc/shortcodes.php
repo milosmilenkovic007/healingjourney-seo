@@ -20,7 +20,7 @@ add_shortcode('seo_report_table', function($atts){
   if (!$site_slug) return '<p>Missing site attribute.</p>';
   $site = get_page_by_path($site_slug, OBJECT, 'seo_site');
   if (!$site) return '<p>Site not found.</p>';
-  $q = new WP_Query(['post_type' => 'seo_report', 'posts_per_page' => -1, 'meta_query' => [ [ 'key' => 'site', 'value' => $site->ID ] ], 'orderby' => 'date', 'order' => 'DESC']);
+  $q = new WP_Query(['post_type' => 'seo_report', 'posts_per_page' => -1, 'meta_query' => [ [ 'key' => 'related_site', 'value' => $site->ID ] ], 'orderby' => 'date', 'order' => 'DESC']);
   if (!$q->have_posts()) return '<p>No reports.</p>';
   $out = '<div class="table-wrap"><table class="table"><thead><tr><th>Month</th><th>Performance Summary</th></tr></thead><tbody>';
   while ($q->have_posts()) { $q->the_post();
@@ -38,7 +38,7 @@ add_shortcode('seo_keyword_map', function($atts){
   if (!$site_slug) return '<p>Missing site attribute.</p>';
   $site = get_page_by_path($site_slug, OBJECT, 'seo_site');
   if (!$site) return '<p>Site not found.</p>';
-  $q = new WP_Query(['post_type' => 'keyword_map', 'posts_per_page' => 1, 'meta_query' => [ [ 'key' => 'site', 'value' => $site->ID ] ], 'orderby' => 'date', 'order' => 'DESC']);
+  $q = new WP_Query(['post_type' => 'keyword_map', 'posts_per_page' => 1, 'meta_query' => [ [ 'key' => 'related_site', 'value' => $site->ID ] ], 'orderby' => 'date', 'order' => 'DESC']);
   if (!$q->have_posts()) return '<p>No keyword map.</p>';
   $q->the_post();
   $rows = hjseo_field('keywords');
@@ -66,7 +66,7 @@ add_shortcode('seo_content_plan', function($atts){
   if (!$site_slug) return '<p>Missing site attribute.</p>';
   $site = get_page_by_path($site_slug, OBJECT, 'seo_site');
   if (!$site) return '<p>Site not found.</p>';
-  $q = new WP_Query(['post_type' => 'content_plan', 'posts_per_page' => -1, 'meta_query' => [ [ 'key' => 'site', 'value' => $site->ID ] ], 'orderby' => 'date', 'order' => 'DESC']);
+  $q = new WP_Query(['post_type' => 'content_plan', 'posts_per_page' => -1, 'meta_query' => [ [ 'key' => 'related_site', 'value' => $site->ID ] ], 'orderby' => 'date', 'order' => 'DESC']);
   if (!$q->have_posts()) return '<p>No content plan items.</p>';
   $out = '<div class="timeline">';
   while ($q->have_posts()) { $q->the_post();
