@@ -26,9 +26,9 @@ function hjseo_sanitize_json($value){
 function hjseo_settings_page(){
     if (!current_user_can('manage_options')) return;
 
-    // Handle uploads of service account JSON
-    if (!empty($_FILES['gsc_service_account_json_file']['tmp_name'])) {
-        check_admin_referer('hjseo_settings');
+  // Handle uploads of service account JSON (when posted to this page directly)
+  if (!empty($_FILES['gsc_service_account_json_file']['tmp_name'])) {
+    check_admin_referer('hjseo_tests');
         $contents = file_get_contents($_FILES['gsc_service_account_json_file']['tmp_name']);
         if ($contents) update_option('hjseo_gsc_service_account_json', $contents, false);
         echo '<div class="updated"><p>Service account JSON uploaded.</p></div>';
@@ -36,13 +36,13 @@ function hjseo_settings_page(){
 
     // Handle tests
     if (isset($_POST['hjseo_test_moz'])) {
-        check_admin_referer('hjseo_settings');
+    check_admin_referer('hjseo_tests');
         $test = hjseo_moz_test_connection();
         if (is_wp_error($test)) echo '<div class="error"><p>' . esc_html($test->get_error_message()) . '</p></div>';
         else echo '<div class="updated"><p>' . esc_html($test) . '</p></div>';
     }
     if (isset($_POST['hjseo_test_gsc'])) {
-        check_admin_referer('hjseo_settings');
+    check_admin_referer('hjseo_tests');
         $prop = sanitize_text_field($_POST['hjseo_test_property'] ?? 'https://example.com/');
         $test = hjseo_gsc_test_connection($prop);
         if (is_wp_error($test)) echo '<div class="error"><p>' . esc_html($test->get_error_message()) . '</p></div>';
@@ -66,7 +66,7 @@ function hjseo_settings_page(){
     <div class="wrap">
       <h1>SEO Integrations</h1>
       <form method="post" action="options.php" enctype="multipart/form-data">
-        <?php settings_fields('hjseo_settings'); wp_nonce_field('hjseo_settings'); ?>
+        <?php settings_fields('hjseo_settings'); ?>
 
         <h2 class="title">MOZ API</h2>
         <table class="form-table" role="presentation">
@@ -75,7 +75,7 @@ function hjseo_settings_page(){
           <tr><th scope="row"><label for="moz_secret_key">Secret Key</label></th>
             <td><input name="hjseo_moz_secret_key" id="moz_secret_key" type="password" value="<?php echo esc_attr(get_option('hjseo_moz_secret_key','')); ?>" class="regular-text" /></td></tr>
           <tr><th scope="row">Test Connection</th>
-            <td><button class="button" name="hjseo_test_moz" value="1">Test MOZ Connection</button></td></tr>
+            <td><em>Use the test buttons in the Tools section below.</em></td></tr>
         </table>
 
         <h2 class="title">Google Search Console</h2>
@@ -88,11 +88,7 @@ function hjseo_settings_page(){
             </td>
           </tr>
           <tr><th scope="row">Test Property</th>
-            <td>
-              <input type="text" name="hjseo_test_property" placeholder="https://example.com/" class="regular-text" />
-              <button class="button" name="hjseo_test_gsc" value="1">Test GSC Connection</button>
-            </td>
-          </tr>
+            <td><em>Use the test form in the Tools section below.</em></td></tr>
         </table>
 
         <h2 class="title">Sync</h2>
@@ -120,6 +116,33 @@ function hjseo_settings_page(){
 
         <?php submit_button(); ?>
       </form>
+      <h2 class="title">Tools</h2>
+      <table class="form-table" role="presentation">
+        <tr><th scope="row">Test MOZ API</th>
+          <td>
+            <form method="post" action="<?php echo esc_url(admin_url('options-general.php?page=hjseo-settings')); ?>">
+              <?php wp_nonce_field('hjseo_tests'); ?>
+              <input type="hidden" name="hjseo_test_moz" value="1" />
+              <button class="button">Test MOZ Connection</button>
+            </form>
+          </td></tr>
+        <tr><th scope="row">Test GSC API</th>
+          <td>
+            <form method="post" action="<?php echo esc_url(admin_url('options-general.php?page=hjseo-settings')); ?>">
+              <?php wp_nonce_field('hjseo_tests'); ?>
+              <input type="text" name="hjseo_test_property" placeholder="https://example.com/" class="regular-text" />
+              <button class="button" name="hjseo_test_gsc" value="1">Test GSC Connection</button>
+            </form>
+          </td></tr>
+        <tr><th scope="row">Upload Service Account JSON</th>
+          <td>
+            <form method="post" enctype="multipart/form-data" action="<?php echo esc_url(admin_url('options-general.php?page=hjseo-settings')); ?>">
+              <?php wp_nonce_field('hjseo_tests'); ?>
+              <input type="file" name="gsc_service_account_json_file" accept="application/json" />
+              <button class="button">Upload</button>
+            </form>
+          </td></tr>
+      </table>
     </div>
     <?php
 }
