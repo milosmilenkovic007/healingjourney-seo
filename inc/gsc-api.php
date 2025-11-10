@@ -127,3 +127,23 @@ function hjseo_gsc_test_connection($property) {
     if (is_wp_error($sum)) return $sum;
     return sprintf('GSC OK — clicks: %d, impressions: %d, queries: %d', $sum['clicks'], $sum['impressions'], $sum['queries']);
 }
+
+/** Validate service account ownership for active properties (lightweight) */
+function hjseo_gsc_validate_properties() {
+    $json = hjseo_gsc_get_sa_json();
+    if (!$json) return new WP_Error('gsc_missing', 'Service account JSON missing');
+    $sites = get_posts(['post_type'=>'seo_site','posts_per_page'=>-1,'meta_key'=>'active','meta_value'=>'1']);
+    $errors = [];
+    foreach ($sites as $s) {
+        $prop = hjseo_field('gsc_property', $s->ID);
+        if (!$prop) continue;
+        $test = hjseo_gsc_summary($prop, date('Y-m-d', strtotime('-1 days')), date('Y-m-d'));
+        if (is_wp_error($test)) {
+            $errors[] = $prop . ': ' . $test->get_error_message();
+        }
+    }
+    if ($errors) {
+        return new WP_Error('gsc_props', implode('; ', $errors));
+    }
+    return true;
+}

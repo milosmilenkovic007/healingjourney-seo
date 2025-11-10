@@ -52,6 +52,9 @@ $hjseo_includes = [
     '/inc/admin-columns.php',
     '/inc/media.php',
     '/inc/seed.php',
+    '/inc/notices.php',
+    '/inc/acf-json.php',
+    '/inc/cli.php',
 ];
 foreach ($hjseo_includes as $file) {
     $path = HJSEO_DIR . $file;
