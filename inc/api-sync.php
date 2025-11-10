@@ -4,8 +4,19 @@ if (!defined('ABSPATH')) { exit; }
 
 /** Update metrics for a single Site post */
 function hjseo_update_site_metrics(int $site_post_id) {
-    $domain = hjseo_field('site_domain', $site_post_id);
-    $property = hjseo_field('gsc_property', $site_post_id);
+    $domain = trim((string)hjseo_field('site_domain', $site_post_id));
+    $property = trim((string)hjseo_field('gsc_property', $site_post_id));
+    // Normalize domain (ensure scheme) for MOZ & GSC consistency
+    if ($domain && !preg_match('~^https?://~i', $domain)) {
+        $domain = 'https://' . ltrim($domain, '/');
+    }
+    // Normalize property (GSC requires exact match including trailing slash for domain properties)
+    if ($property && !preg_match('~^https?://~i', $property)) {
+        $property = 'https://' . ltrim($property, '/');
+    }
+    if ($property && substr($property, -1) !== '/') {
+        $property .= '/';
+    }
     if (!$domain) return new WP_Error('site_domain_missing', 'Site domain missing');
     if (!$property) return new WP_Error('gsc_property_missing', 'GSC property missing');
 
@@ -51,6 +62,36 @@ function hjseo_update_site_metrics(int $site_post_id) {
         'visibility' => $visibility,
     ];
 }
+
+/** Auto-sync on save when editing a seo_site post */
+add_action('save_post_seo_site', function($post_id, $post, $update){
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
+    if (wp_is_post_revision($post_id)) return;
+    if (!current_user_can('edit_post', $post_id)) return;
+    // Only trigger if both critical fields present
+    $domain = hjseo_field('site_domain', $post_id);
+    $prop = hjseo_field('gsc_property', $post_id);
+    if ($domain && $prop) {
+        $res = hjseo_update_site_metrics($post_id);
+        if (is_wp_error($res)) {
+            // Store last error transient for notice
+            set_transient('hjseo_last_sync_error_' . $post_id, $res->get_error_message(), MINUTE_IN_SECONDS * 10);
+        } else {
+            delete_transient('hjseo_last_sync_error_' . $post_id);
+        }
+    }
+}, 10, 3);
+
+// Admin notice on edit screen if last auto-sync failed
+add_action('admin_notices', function(){
+    global $pagenow, $post;
+    if ($pagenow !== 'post.php') return;
+    if (!$post || $post->post_type !== 'seo_site') return;
+    $msg = get_transient('hjseo_last_sync_error_' . $post->ID);
+    if ($msg) {
+        echo '<div class="notice notice-error"><p><strong>HealingJourney SEO Auto-Sync Error:</strong> ' . esc_html($msg) . '</p></div>';
+    }
+});
 
 /** Log helper */
 function hjseo_log_sync($payload) {
