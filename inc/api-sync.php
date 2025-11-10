@@ -200,10 +200,12 @@ add_action('admin_post_hjseo_refresh_site', function() {
     $site_id = (int)($_POST['site_id'] ?? 0);
     check_admin_referer('hjseo_refresh_site_' . $site_id);
     $res = hjseo_update_site_metrics($site_id);
+    $dest = add_query_arg(['post'=>$site_id,'action'=>'edit'], admin_url('post.php'));
     if (is_wp_error($res)) {
-        wp_redirect(add_query_arg(['hjseo_site_sync' => 'fail', 'msg' => $res->get_error_message()], get_permalink($site_id)));
+        $dest = add_query_arg(['hjseo_site_sync' => 'fail', 'msg' => rawurlencode($res->get_error_message())], $dest);
     } else {
-        wp_redirect(add_query_arg(['hjseo_site_sync' => 'ok'], get_permalink($site_id)));
+        $dest = add_query_arg(['hjseo_site_sync' => 'ok'], $dest);
     }
+    wp_redirect($dest);
     exit;
 });
