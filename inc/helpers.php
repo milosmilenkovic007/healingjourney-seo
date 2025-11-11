@@ -61,3 +61,23 @@ function hjseo_render_metrics_row($metrics) {
   }
   return '<div class="metrics">' . $out . '</div>';
 }
+
+// Debug logging helpers (optional, controlled via setting or constant)
+function hjseo_debug_enabled() {
+  $opt = get_option('hjseo_debug_log', '0');
+  if (defined('HJSEO_DEBUG') && HJSEO_DEBUG) return true;
+  return $opt === '1';
+}
+
+function hjseo_debug_log($context, $data = null) {
+  if (!hjseo_debug_enabled()) return;
+  $upload = wp_get_upload_dir();
+  $file = trailingslashit($upload['basedir']) . 'hjseo-sync.log';
+  $payload = [
+    'level' => 'DEBUG',
+    'context' => (string)$context,
+    'data' => $data,
+  ];
+  $line = '[' . date('Y-m-d H:i:s') . '] ' . wp_json_encode($payload) . PHP_EOL;
+  @file_put_contents($file, $line, FILE_APPEND);
+}

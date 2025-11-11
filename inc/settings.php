@@ -13,6 +13,7 @@ add_action('admin_init', function(){
     register_setting('hjseo_settings', 'hjseo_gsc_service_account_json', ['type'=>'string','sanitize_callback'=>'hjseo_sanitize_json','show_in_rest'=>false, 'autoload' => 'no']);
     register_setting('hjseo_settings', 'hjseo_sync_window', ['type'=>'integer','sanitize_callback'=>'absint','default'=>28]);
     register_setting('hjseo_settings', 'hjseo_enable_cron', ['type'=>'string','sanitize_callback'=>function($v){ return $v==='1'?'1':'0'; }, 'default'=>'0']);
+  register_setting('hjseo_settings', 'hjseo_debug_log', ['type'=>'string','sanitize_callback'=>function($v){ return $v==='1'?'1':'0'; }, 'default'=>'0']);
 });
 
 function hjseo_sanitize_json($value){
@@ -32,6 +33,16 @@ function hjseo_settings_page(){
         $contents = file_get_contents($_FILES['gsc_service_account_json_file']['tmp_name']);
         if ($contents) update_option('hjseo_gsc_service_account_json', $contents, false);
         echo '<div class="updated"><p>Service account JSON uploaded.</p></div>';
+    }
+    // Clear debug log
+    if (isset($_POST['hjseo_clear_log'])) {
+    check_admin_referer('hjseo_tests');
+      $upload = wp_get_upload_dir();
+      $file = trailingslashit($upload['basedir']) . 'hjseo-sync.log';
+      if (file_exists($file)) {
+        @unlink($file);
+      }
+      echo '<div class="updated"><p>Debug log cleared.</p></div>';
     }
 
     // Handle tests
@@ -101,6 +112,12 @@ function hjseo_settings_page(){
               <label><input type="checkbox" name="hjseo_enable_cron" value="1" <?php checked(get_option('hjseo_enable_cron','0'),'1'); ?> /> Enable Cron (daily GSC, weekly MOZ)</label>
             </td>
           </tr>
+          <tr><th scope="row">Enable Debug Log</th>
+            <td>
+              <label><input type="checkbox" name="hjseo_debug_log" value="1" <?php checked(get_option('hjseo_debug_log','0'),'1'); ?> /> Write extended debug details (requests & responses) to hjseo-sync.log</label>
+              <p class="description">Disable in production to reduce log size.</p>
+            </td>
+          </tr>
           <tr><th scope="row">Run Full Sync</th>
             <td><em>Use the Run Full Sync button in the Tools section below.</em></td>
           </tr>
@@ -140,6 +157,19 @@ function hjseo_settings_page(){
               <?php wp_nonce_field('hjseo_full_sync'); ?>
               <input type="hidden" name="action" value="hjseo_full_sync" />
               <button class="button button-primary">Run Full Sync Now</button>
+            </form>
+          </td>
+        </tr>
+        <tr><th scope="row">Debug Log</th>
+          <td>
+            <?php $upload = wp_get_upload_dir(); $log_url = trailingslashit($upload['baseurl']) . 'hjseo-sync.log'; ?>
+            <p>
+              <a class="button" href="<?php echo esc_url($log_url); ?>" target="_blank" rel="noopener">Download/View Log</a>
+            </p>
+            <form method="post" action="<?php echo esc_url(admin_url('options-general.php?page=hjseo-settings')); ?>">
+              <?php wp_nonce_field('hjseo_tests'); ?>
+              <input type="hidden" name="hjseo_clear_log" value="1" />
+              <button class="button">Clear Log</button>
             </form>
           </td>
         </tr>

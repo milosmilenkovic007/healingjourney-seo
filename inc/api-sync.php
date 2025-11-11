@@ -21,6 +21,9 @@ function hjseo_update_site_metrics(int $site_post_id) {
     if (!$property) return new WP_Error('gsc_property_missing', 'GSC property missing');
 
     $moz = hjseo_moz_url_metrics($domain);
+    if (function_exists('hjseo_debug_log')) {
+        hjseo_debug_log('sync_moz_raw', $moz instanceof WP_Error ? ['error'=>$moz->get_error_message()] : $moz);
+    }
     $window = get_option('hjseo_sync_window', 28);
     $end = date('Y-m-d');
     $start = date('Y-m-d', strtotime('-' . (int)$window . ' days'));
@@ -53,6 +56,17 @@ function hjseo_update_site_metrics(int $site_post_id) {
         'visibility' => $visibility,
         'window_days' => $window,
     ]);
+    if (function_exists('hjseo_debug_log')) {
+        hjseo_debug_log('sync_final_metrics', [
+            'site' => $domain,
+            'authority' => $authority,
+            'backlinks' => $backlinks,
+            'ref_domains' => $ref_domains,
+            'keywords' => $keywords,
+            'visibility' => $visibility,
+            'window_days' => $window,
+        ]);
+    }
 
     return [
         'authority' => $authority,
@@ -63,7 +77,22 @@ function hjseo_update_site_metrics(int $site_post_id) {
     ];
 }
 
-// (Removed auto-sync on save to simplify UX and avoid unexpected redirects)
+/** Auto-sync on save after fields are stored (safe, no redirect) */
+add_action('save_post_seo_site', function($post_id, $post, $update){
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
+    if (wp_is_post_revision($post_id)) return;
+    if (!current_user_can('edit_post', $post_id)) return;
+    $domain = trim((string)hjseo_field('site_domain', $post_id));
+    $prop = trim((string)hjseo_field('gsc_property', $post_id));
+    if ($domain && $prop) {
+        $res = hjseo_update_site_metrics($post_id);
+        if (is_wp_error($res)) {
+            set_transient('hjseo_last_sync_error_' . $post_id, $res->get_error_message(), MINUTE_IN_SECONDS * 10);
+        } else {
+            delete_transient('hjseo_last_sync_error_' . $post_id);
+        }
+    }
+}, 20, 3);
 
 // Admin notice on edit screen if last auto-sync failed
 add_action('admin_notices', function(){
@@ -91,6 +120,13 @@ function hjseo_log_sync($payload) {
     $file = trailingslashit($upload['basedir']) . 'hjseo-sync.log';
     $line = '[' . date('Y-m-d H:i:s') . '] ' . wp_json_encode($payload) . PHP_EOL;
     @file_put_contents($file, $line, FILE_APPEND);
+}
+
+// Wrapper to also log at debug level when enabled
+function hjseo_log_debug_sync($payload) {
+    if (function_exists('hjseo_debug_log')) {
+        hjseo_debug_log('sync', $payload);
+    }
 }
 
 /** Cron setup */
@@ -179,17 +215,19 @@ function hjseo_refresh_box_cb($post) {
     echo '<p><strong>Ref Domains:</strong> ' . esc_html($metrics['ref_domains'] ?: '—') . '</p>';
     echo '<p><strong>Keywords:</strong> ' . esc_html($metrics['keywords'] ?: '—') . '</p>';
     echo '<p><strong>Visibility:</strong> ' . esc_html($metrics['visibility'] !== '' ? $metrics['visibility'] . '%' : '—') . '</p>';
-    echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '">';
-    wp_nonce_field('hjseo_refresh_site_' . $post->ID);
-    echo '<input type="hidden" name="action" value="hjseo_refresh_site" />';
-    echo '<input type="hidden" name="site_id" value="' . esc_attr($post->ID) . '" />';
-    echo '<p><button class="button button-primary">Refresh metrics</button></p>';
-    echo '</form>';
+    $url = wp_nonce_url(
+        add_query_arg([
+            'action' => 'hjseo_refresh_site',
+            'site_id' => $post->ID,
+        ], admin_url('admin-post.php')),
+        'hjseo_refresh_site_' . $post->ID
+    );
+    echo '<p><a class="button button-primary" href="' . esc_url($url) . '">Refresh metrics</a></p>';
 }
 
 add_action('admin_post_hjseo_refresh_site', function() {
-    if (!current_user_can('edit_posts')) wp_die('Forbidden');
-    $site_id = (int)($_POST['site_id'] ?? 0);
+    $site_id = isset($_GET['site_id']) ? (int) $_GET['site_id'] : (int)($_POST['site_id'] ?? 0);
+    if (!current_user_can('edit_post', $site_id)) wp_die('Forbidden');
     check_admin_referer('hjseo_refresh_site_' . $site_id);
     $res = hjseo_update_site_metrics($site_id);
     $dest = add_query_arg(['post'=>$site_id,'action'=>'edit'], admin_url('post.php'));
