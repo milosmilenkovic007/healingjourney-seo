@@ -11,6 +11,7 @@ add_action('init', function() {
     'title' => 'Site Details',
     'fields' => [
       [ 'key' => 'field_hjseo_site_domain', 'label' => 'Site Domain', 'name' => 'site_domain', 'type' => 'text', 'required' => 1 ],
+      [ 'key' => 'field_hjseo_gsc_property', 'label' => 'GSC Property', 'name' => 'gsc_property', 'type' => 'text', 'instructions' => 'e.g., https://example.com/', 'required' => 1 ],
       [ 'key' => 'field_hjseo_logo', 'label' => 'Logo', 'name' => 'logo', 'type' => 'image', 'return_format' => 'array' ],
       [ 'key' => 'field_hjseo_authority', 'label' => 'Authority (DA)', 'name' => 'authority', 'type' => 'number', 'min' => 0, 'max' => 100 ],
       [ 'key' => 'field_hjseo_backlinks', 'label' => 'Backlinks', 'name' => 'backlinks', 'type' => 'number', 'min' => 0 ],
@@ -18,7 +19,6 @@ add_action('init', function() {
       [ 'key' => 'field_hjseo_keywords', 'label' => 'Keywords (Queries)', 'name' => 'keywords', 'type' => 'number', 'min' => 0 ],
       [ 'key' => 'field_hjseo_visibility', 'label' => 'Visibility %', 'name' => 'visibility', 'type' => 'number', 'min' => 0, 'max' => 100, 'step' => 0.01 ],
       [ 'key' => 'field_hjseo_last_synced', 'label' => 'Last Synced', 'name' => 'last_synced', 'type' => 'date_time_picker', 'display_format' => 'Y-m-d H:i', 'return_format' => 'Y-m-d H:i:s' ],
-      [ 'key' => 'field_hjseo_gsc_property', 'label' => 'GSC Property', 'name' => 'gsc_property', 'type' => 'text' ],
       [ 'key' => 'field_hjseo_active', 'label' => 'Active', 'name' => 'active', 'type' => 'true_false', 'ui' => 1, 'default_value' => 1 ],
     ],
     'location' => [[ [ 'param' => 'post_type', 'operator' => '==', 'value' => 'seo_site' ]]],

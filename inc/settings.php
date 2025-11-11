@@ -49,18 +49,12 @@ function hjseo_settings_page(){
         else echo '<div class="updated"><p>' . esc_html($test) . '</p></div>';
     }
 
-    // Handle full sync
-    if (isset($_POST['hjseo_run_full_sync'])) {
-        check_admin_referer('hjseo_settings');
-        $sites = get_posts(['post_type'=>'seo_site','posts_per_page'=>-1]);
-        $ok=0;$fail=0;
-        foreach ($sites as $s) {
-            if (hjseo_field('active', $s->ID) !== '1') continue;
-            $res = hjseo_update_site_metrics($s->ID);
-            if (is_wp_error($res)) $fail++; else $ok++;
-        }
-        echo '<div class="updated"><p>Full sync done. OK: ' . (int)$ok . ', Failed: ' . (int)$fail . '</p></div>';
-    }
+  // Show status from admin-post full sync redirect
+  if (isset($_GET['hjseo_sync']) && $_GET['hjseo_sync'] === 'done') {
+    $ok = isset($_GET['ok']) ? (int) $_GET['ok'] : 0;
+    $fail = isset($_GET['fail']) ? (int) $_GET['fail'] : 0;
+    echo '<div class="updated"><p>Full sync done. OK: ' . $ok . ', Failed: ' . $fail . '</p></div>';
+  }
 
     ?>
     <div class="wrap">
@@ -109,7 +103,11 @@ function hjseo_settings_page(){
           </tr>
           <tr><th scope="row">Run Full Sync</th>
             <td>
-              <button class="button button-primary" name="hjseo_run_full_sync" value="1">Run Full Sync Now</button>
+              <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" style="display:inline;">
+                <?php wp_nonce_field('hjseo_full_sync'); ?>
+                <input type="hidden" name="action" value="hjseo_full_sync" />
+                <button class="button button-primary">Run Full Sync Now</button>
+              </form>
             </td>
           </tr>
         </table>
