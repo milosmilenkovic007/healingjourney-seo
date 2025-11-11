@@ -85,8 +85,8 @@ function hjseo_settings_page(){
             <td><em>Use the test form in the Tools section below.</em></td></tr>
         </table>
 
-        <h2 class="title">Sync</h2>
-        <table class="form-table" role="presentation">
+  <h2 class="title">Sync</h2>
+  <table class="form-table" role="presentation">
           <tr><th scope="row"><label for="sync_window">Default time window</label></th>
             <td>
               <select id="sync_window" name="hjseo_sync_window">
@@ -102,19 +102,13 @@ function hjseo_settings_page(){
             </td>
           </tr>
           <tr><th scope="row">Run Full Sync</th>
-            <td>
-              <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" style="display:inline;">
-                <?php wp_nonce_field('hjseo_full_sync'); ?>
-                <input type="hidden" name="action" value="hjseo_full_sync" />
-                <button class="button button-primary">Run Full Sync Now</button>
-              </form>
-            </td>
+            <td><em>Use the Run Full Sync button in the Tools section below.</em></td>
           </tr>
         </table>
 
         <?php submit_button(); ?>
       </form>
-      <h2 class="title">Tools</h2>
+  <h2 class="title">Tools</h2>
       <table class="form-table" role="presentation">
         <tr><th scope="row">Test MOZ API</th>
           <td>
@@ -140,6 +134,15 @@ function hjseo_settings_page(){
               <button class="button">Upload</button>
             </form>
           </td></tr>
+        <tr><th scope="row">Run Full Sync</th>
+          <td>
+            <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
+              <?php wp_nonce_field('hjseo_full_sync'); ?>
+              <input type="hidden" name="action" value="hjseo_full_sync" />
+              <button class="button button-primary">Run Full Sync Now</button>
+            </form>
+          </td>
+        </tr>
       </table>
     </div>
     <?php

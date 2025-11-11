@@ -63,24 +63,7 @@ function hjseo_update_site_metrics(int $site_post_id) {
     ];
 }
 
-/** Auto-sync on save when editing a seo_site post */
-add_action('save_post_seo_site', function($post_id, $post, $update){
-    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return;
-    if (wp_is_post_revision($post_id)) return;
-    if (!current_user_can('edit_post', $post_id)) return;
-    // Only trigger if both critical fields present
-    $domain = hjseo_field('site_domain', $post_id);
-    $prop = hjseo_field('gsc_property', $post_id);
-    if ($domain && $prop) {
-        $res = hjseo_update_site_metrics($post_id);
-        if (is_wp_error($res)) {
-            // Store last error transient for notice
-            set_transient('hjseo_last_sync_error_' . $post_id, $res->get_error_message(), MINUTE_IN_SECONDS * 10);
-        } else {
-            delete_transient('hjseo_last_sync_error_' . $post_id);
-        }
-    }
-}, 10, 3);
+// (Removed auto-sync on save to simplify UX and avoid unexpected redirects)
 
 // Admin notice on edit screen if last auto-sync failed
 add_action('admin_notices', function(){
@@ -205,7 +188,7 @@ function hjseo_refresh_box_cb($post) {
 }
 
 add_action('admin_post_hjseo_refresh_site', function() {
-    if (!current_user_can('manage_options')) wp_die('Forbidden');
+    if (!current_user_can('edit_posts')) wp_die('Forbidden');
     $site_id = (int)($_POST['site_id'] ?? 0);
     check_admin_referer('hjseo_refresh_site_' . $site_id);
     $res = hjseo_update_site_metrics($site_id);
