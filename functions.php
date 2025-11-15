@@ -55,6 +55,7 @@ $hjseo_includes = [
     '/inc/notices.php',
     '/inc/acf-json.php',
     '/inc/cli.php',
+    '/inc/auth.php',
 ];
 foreach ($hjseo_includes as $file) {
     $path = HJSEO_DIR . $file;
