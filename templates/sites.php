@@ -28,11 +28,12 @@ get_header();
   $metrics = hjseo_get_site_metrics(get_the_ID());
   $domain = hjseo_field('site_domain');
   if (!$domain) { $domain = hjseo_field('domain'); }
-  $logo = hjseo_field('logo');
+        $thumb_id = get_post_thumbnail_id(get_the_ID());
         echo '<div class="hjseo-site-card">';
         echo '<div class="hjseo-site-card-header">';
-        if ($logo) {
-          echo '<img src="' . esc_url(wp_get_attachment_url($logo)) . '" alt="Logo" class="hjseo-site-logo">';
+        if ($thumb_id) {
+          $thumb_url = wp_get_attachment_image_url($thumb_id, 'medium');
+          echo '<img src="' . esc_url($thumb_url) . '" alt="Featured" class="hjseo-site-logo">';
         } else {
           echo '<div class="hjseo-site-logo-placeholder">' . strtoupper(substr($domain, 0, 1)) . '</div>';
         }
