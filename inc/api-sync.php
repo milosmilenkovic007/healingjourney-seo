@@ -7,7 +7,7 @@ function hjseo_update_site_metrics(int $site_post_id) {
     $domain = trim((string)hjseo_field('site_domain', $site_post_id));
     $property = trim((string)hjseo_field('gsc_property', $site_post_id));
     
-    // Normalize domain: always https://, no trailing slash
+    // Normalize domain: always https://, no trailing slash (for MOZ)
     if ($domain) {
         if (!preg_match('~^https?://~i', $domain)) {
             $domain = 'https://' . ltrim($domain, '/');
@@ -15,12 +15,15 @@ function hjseo_update_site_metrics(int $site_post_id) {
         $domain = rtrim($domain, '/');
     }
     
-    // Normalize property: ensure it's a valid GSC property ID (https://domain/ or sc-domain:domain)
+    // GSC Property: user must enter exact property ID as registered in Search Console
+    // Examples: https://example.com/ or http://example.com/ or sc-domain:example.com
+    // We only ensure trailing slash IF it's http(s) URL AND missing slash
     if ($property) {
+        // If user typed bare domain (no scheme), default to https://domain/
         if (!preg_match('~^(https?://|sc-domain:)~i', $property)) {
             $property = 'https://' . ltrim($property, '/');
         }
-        // If it's an https URL property, ensure trailing slash for GSC API
+        // Ensure trailing slash ONLY for http(s) URLs (not sc-domain:)
         if (preg_match('~^https?://~i', $property) && substr($property, -1) !== '/') {
             $property .= '/';
         }
