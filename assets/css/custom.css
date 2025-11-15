@@ -1,3 +1,5 @@
+/* Force hide WP admin bar for all users */
+.admin-bar { display: none !important; }
 /* Header nav links */
 .hjseo-nav-link {
     color: #fff !important;
