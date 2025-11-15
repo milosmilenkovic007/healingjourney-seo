@@ -73,7 +73,8 @@ function hjseo_gsc_get_access_token() {
 
 /**
  * Get Search Console summary for a property.
- * @param string $property e.g. https://example.com/
+ * Auto-tries both with and without trailing slash for URL properties.
+ * @param string $property e.g. https://example.com/ or https://example.com or sc-domain:example.com
  * @param string $start Y-m-d
  * @param string $end Y-m-d
  * @return array|WP_Error {clicks, impressions, queries, rows}
@@ -84,39 +85,73 @@ function hjseo_gsc_summary(string $property, string $start, string $end) {
     $property = trim($property);
     if ($property === '') return new WP_Error('gsc_property', 'Empty GSC property');
 
-    $url = 'https://www.googleapis.com/webmasters/v3/sites/' . rawurlencode($property) . '/searchAnalytics/query';
+    // Build property variants to try (with/without trailing slash + http/https for URL properties)
+    $variants = [$property];
+    if (preg_match('~^https?://~i', $property)) {
+        // Add trailing slash variant
+        if (substr($property, -1) === '/') {
+            $variants[] = rtrim($property, '/');
+        } else {
+            $variants[] = $property . '/';
+        }
+        // Add http/https variants
+        if (stripos($property, 'https://') === 0) {
+            $http = str_replace('https://', 'http://', $property);
+            $variants[] = $http;
+            $variants[] = rtrim($http, '/');
+        } elseif (stripos($property, 'http://') === 0) {
+            $https = str_replace('http://', 'https://', $property);
+            $variants[] = $https;
+            $variants[] = rtrim($https, '/');
+        }
+    }
+
     $body = [
         'startDate' => $start,
         'endDate' => $end,
         'dimensions' => ['query'],
         'rowLimit' => 25000,
     ];
-    $res = wp_remote_post($url, [
-        'headers' => [
-            'Authorization' => 'Bearer ' . $token,
-            'Content-Type' => 'application/json',
-        ],
-        'body' => wp_json_encode($body),
-        'timeout' => 30,
-    ]);
-    if (is_wp_error($res)) return $res;
-    $code = wp_remote_retrieve_response_code($res);
-    if ($code === 429) return new WP_Error('gsc_429', 'Rate limited by Google');
-    if ($code >= 400) return new WP_Error('gsc_http_' . $code, wp_remote_retrieve_body($res));
-    $data = json_decode(wp_remote_retrieve_body($res), true);
-    $rows = $data['rows'] ?? [];
-    $clicks = 0; $impr = 0; $q = 0;
-    foreach ($rows as $r) {
-        $clicks += (int)($r['clicks'] ?? 0);
-        $impr += (int)($r['impressions'] ?? 0);
-        $q++;
+
+    $last_error = null;
+    foreach ($variants as $prop) {
+        $url = 'https://www.googleapis.com/webmasters/v3/sites/' . rawurlencode($prop) . '/searchAnalytics/query';
+        $res = wp_remote_post($url, [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $token,
+                'Content-Type' => 'application/json',
+            ],
+            'body' => wp_json_encode($body),
+            'timeout' => 30,
+        ]);
+        if (is_wp_error($res)) {
+            $last_error = $res;
+            continue;
+        }
+        $code = wp_remote_retrieve_response_code($res);
+        if ($code === 429) return new WP_Error('gsc_429', 'Rate limited by Google');
+        if ($code >= 400) {
+            $last_error = new WP_Error('gsc_http_' . $code, wp_remote_retrieve_body($res));
+            continue;
+        }
+        // Success
+        $data = json_decode(wp_remote_retrieve_body($res), true);
+        $rows = $data['rows'] ?? [];
+        $clicks = 0; $impr = 0; $q = 0;
+        foreach ($rows as $r) {
+            $clicks += (int)($r['clicks'] ?? 0);
+            $impr += (int)($r['impressions'] ?? 0);
+            $q++;
+        }
+        return [
+            'clicks' => $clicks,
+            'impressions' => $impr,
+            'queries' => $q,
+            'rows' => $rows,
+        ];
     }
-    return [
-        'clicks' => $clicks,
-        'impressions' => $impr,
-        'queries' => $q,
-        'rows' => $rows,
-    ];
+    // All variants failed
+    return $last_error ?: new WP_Error('gsc_fail', 'GSC API failed for all property variants');
 }
 
 /** Test connection helper */
