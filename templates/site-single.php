@@ -20,6 +20,12 @@ get_header();
     <?php echo hjseo_render_metrics_row(hjseo_get_site_metrics($site->ID)); ?>
   </div>
 
+  <?php if (!empty($site->post_content)): ?>
+  <div class="mt-24">
+    <?php echo wp_kses_post($site->post_content); ?>
+  </div>
+  <?php endif; ?>
+
   <div class="tabs">
     <button class="tab active" data-tab="tab-reports">SEO Reports</button>
     <button class="tab" data-tab="tab-keywords">Keyword Map</button>
