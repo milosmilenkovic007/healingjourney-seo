@@ -13,13 +13,11 @@ function hjseo_moz_url_metrics(string $site_url) {
     if ($site_url === '') {
         return new WP_Error('moz_empty', 'Empty site URL');
     }
-    // Ensure scheme and trailing slash for root targets
+    // Normalize: always https://, no trailing slash for MOZ target
     if (!preg_match('~^https?://~i', $site_url)) {
         $site_url = 'https://' . ltrim($site_url, '/');
     }
-    if (substr($site_url, -1) !== '/') {
-        $site_url .= '/';
-    }
+    $site_url = rtrim($site_url, '/');
     $access_id = get_option('hjseo_moz_access_id');
     $secret_key = get_option('hjseo_moz_secret_key');
     if (!$access_id || !$secret_key) {
@@ -27,7 +25,7 @@ function hjseo_moz_url_metrics(string $site_url) {
     }
     // Bust old caches by including a version suffix
     $hash = md5($site_url);
-    $cache_key = 'hj_moz_' . $hash . '_v2m3';
+    $cache_key = 'hj_moz_' . $hash . '_v2m4';
     $cached = get_transient($cache_key);
     if ($cached) { return $cached; }
 

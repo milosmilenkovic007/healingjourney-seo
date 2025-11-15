@@ -6,17 +6,26 @@ if (!defined('ABSPATH')) { exit; }
 function hjseo_update_site_metrics(int $site_post_id) {
     $domain = trim((string)hjseo_field('site_domain', $site_post_id));
     $property = trim((string)hjseo_field('gsc_property', $site_post_id));
-    // Normalize domain (ensure scheme) for MOZ & GSC consistency
-    if ($domain && !preg_match('~^https?://~i', $domain)) {
-        $domain = 'https://' . ltrim($domain, '/');
+    
+    // Normalize domain: always https://, no trailing slash
+    if ($domain) {
+        if (!preg_match('~^https?://~i', $domain)) {
+            $domain = 'https://' . ltrim($domain, '/');
+        }
+        $domain = rtrim($domain, '/');
     }
-    // Normalize property (GSC requires exact match including trailing slash for domain properties)
-    if ($property && !preg_match('~^https?://~i', $property)) {
-        $property = 'https://' . ltrim($property, '/');
+    
+    // Normalize property: ensure it's a valid GSC property ID (https://domain/ or sc-domain:domain)
+    if ($property) {
+        if (!preg_match('~^(https?://|sc-domain:)~i', $property)) {
+            $property = 'https://' . ltrim($property, '/');
+        }
+        // If it's an https URL property, ensure trailing slash for GSC API
+        if (preg_match('~^https?://~i', $property) && substr($property, -1) !== '/') {
+            $property .= '/';
+        }
     }
-    if ($property && substr($property, -1) !== '/') {
-        $property .= '/';
-    }
+    
     if (!$domain) return new WP_Error('site_domain_missing', 'Site domain missing');
     if (!$property) return new WP_Error('gsc_property_missing', 'GSC property missing');
 
