@@ -1,3 +1,26 @@
+/* Header nav links */
+.hjseo-nav-link {
+    color: #fff !important;
+    font-weight: 600;
+    font-size: 1.05rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 8px;
+    transition: background 0.2s;
+}
+.hjseo-nav-link:hover {
+    background: rgba(255,255,255,0.12);
+    color: #e0e7ff !important;
+    text-decoration: none;
+}
+.hjseo-btn-secondary {
+    background: transparent;
+    color: #fff;
+    border: 1px solid #fff;
+}
+.hjseo-btn-secondary:hover {
+    background: rgba(255,255,255,0.12);
+    color: #e0e7ff;
+}
 /* Additional theme styles (extendable) */
 .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; background: rgba(127,211,218,.15); color: #7fd3da; font-size: 12px; }
 

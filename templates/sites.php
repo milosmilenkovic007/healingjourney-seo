@@ -5,8 +5,13 @@ get_header();
 ?>
 <header class="site-header">
   <div class="container">
-    <div class="brand"><span class="dot"></span> <span>HealingJourney SEO</span></div>
-    <nav><a href="/sites">Sites</a> · <a href="/reports">Reports</a></nav>
+    <a href="/" class="brand" style="text-decoration:none;"><span class="dot"></span> <span>HealingJourney SEO</span></a>
+    <nav style="display:flex;align-items:center;gap:2rem;">
+      <a href="/sites" class="hjseo-nav-link">Sites</a>
+      <a href="/reports" class="hjseo-nav-link">Reports</a>
+      <form method="post" action="<?php echo esc_url(wp_logout_url('/login/')); ?>" style="display:inline; margin-left:2rem;">
+        <button type="submit" class="hjseo-btn hjseo-btn-secondary" style="padding:0.5rem 1.2rem;">Logout</button>
+      </form>
   </div>
 </header>
 <main class="container">
