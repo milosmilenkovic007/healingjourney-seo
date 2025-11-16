@@ -45,11 +45,12 @@ add_action('init', function() {
     'title' => 'SEO Task Details',
     'fields' => [
       [ 'key' => 'field_hjseo_task_site', 'label' => 'Related Site', 'name' => 'related_site', 'type' => 'post_object', 'post_type' => ['seo_site'], 'return_format' => 'id', 'required' => 1 ],
-      [ 'key' => 'field_hjseo_task_list', 'label' => 'Task List', 'name' => 'task_list', 'type' => 'text', 'instructions' => 'e.g., Technical, Content, Backlinks' ],
+      [ 'key' => 'field_hjseo_task_list_legacy', 'label' => 'Task List (legacy)', 'name' => 'task_list', 'type' => 'text', 'instructions' => 'Legacy text list (not used when taxonomy assigned)' ],
       [ 'key' => 'field_hjseo_task_priority', 'label' => 'Priority', 'name' => 'priority', 'type' => 'select', 'choices' => [ 'low' => 'Low', 'medium' => 'Medium', 'high' => 'High', 'urgent' => 'Urgent' ], 'default_value' => 'medium', 'ui' => 1 ],
       [ 'key' => 'field_hjseo_task_status', 'label' => 'Status', 'name' => 'status', 'type' => 'select', 'choices' => [ 'todo' => 'To do', 'inprogress' => 'In progress', 'done' => 'Done' ], 'default_value' => 'todo', 'ui' => 1 ],
       [ 'key' => 'field_hjseo_task_due', 'label' => 'Due Date', 'name' => 'due_date', 'type' => 'date_picker', 'display_format' => 'Y-m-d', 'return_format' => 'Y-m-d' ],
       [ 'key' => 'field_hjseo_task_assignee', 'label' => 'Assigned To', 'name' => 'assignee', 'type' => 'user', 'instructions' => 'Assign to Developer or Manager', 'role' => ['seo_developer','seo_manager','administrator'], 'return_format' => 'id' ],
+      [ 'key' => 'field_hjseo_task_notes', 'label' => 'Notes', 'name' => 'notes', 'type' => 'textarea' ],
     ],
     'location' => [[ [ 'param' => 'post_type', 'operator' => '==', 'value' => 'seo_task' ]]],
   ]);

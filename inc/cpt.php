@@ -32,6 +32,18 @@ add_action('init', function() {
     'rewrite' => ['slug' => 'seo-task'],
   ]);
 
+  // Task Lists taxonomy (assignable to tasks)
+  register_taxonomy('seo_task_list', ['seo_task'], [
+    'labels' => [
+      'name' => 'Task Lists',
+      'singular_name' => 'Task List',
+    ],
+    'public' => true,
+    'show_in_rest' => true,
+    'hierarchical' => false,
+    'rewrite' => ['slug' => 'task-list'],
+  ]);
+
   // Keyword Maps
   register_post_type('keyword_map', [
     'label' => 'Keyword Maps',

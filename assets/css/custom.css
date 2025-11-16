@@ -47,6 +47,11 @@
 .col-span-3 { grid-column: span 3; }
 .col-span-4 { grid-column: span 4; }
 .tasks-form .input, .tasks-form select, .tasks-form textarea { width: 100%; }
+
+/* Modal */
+.hjseo-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: grid; place-items: center; padding: 24px; z-index: 9999; }
+.hjseo-modal[hidden] { display: none; }
+.hjseo-modal-card { background: #fff; border-radius: 12px; box-shadow: var(--shadow-lg); width: min(960px, 96vw); padding: 24px; }
 /* Additional theme styles (extendable) */
 .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; background: rgba(127,211,218,.15); color: #7fd3da; font-size: 12px; }
 

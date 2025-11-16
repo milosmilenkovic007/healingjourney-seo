@@ -39,6 +39,18 @@ add_action('wp_enqueue_scripts', function () {
     wp_enqueue_script('chartjs', 'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js', [], '4.4.1', true);
     wp_enqueue_script('hjseo-charts', HJSEO_URI . '/assets/js/charts.js', ['chartjs'], HJSEO_VERSION, true);
     wp_enqueue_script('hjseo-main', HJSEO_URI . '/assets/js/main.js', ['hjseo-charts'], HJSEO_VERSION, true);
+    // Localize available task lists for modal selects
+    if (function_exists('get_terms')) {
+        $terms = get_terms(['taxonomy'=>'seo_task_list','hide_empty'=>false]);
+        $payload = [];
+        foreach ($terms as $t) {
+            $site_id = (int) get_term_meta($t->term_id, 'related_site', true);
+            $payload[] = [ 'term_id'=>$t->term_id, 'name'=>$t->name, 'site_id'=>$site_id ];
+        }
+        // Embed into body attribute via inline script
+        $json = wp_json_encode($payload);
+        wp_add_inline_script('hjseo-main', 'document.body.setAttribute("data-tasklists",'. $json .');', 'before');
+    }
 });
 
 // Admin assets (lightweight)
@@ -95,17 +107,19 @@ add_action('admin_post_hjseo_task_create', function(){
     $title = sanitize_text_field($_POST['title'] ?? '');
     $content = wp_kses_post($_POST['content'] ?? '');
     $site_id = (int)($_POST['site_id'] ?? 0);
-    $list = sanitize_text_field($_POST['task_list'] ?? '');
+    $term_id = (int)($_POST['task_list_term'] ?? 0);
     $priority = sanitize_text_field($_POST['priority'] ?? 'medium');
     $due = sanitize_text_field($_POST['due_date'] ?? '');
+    $notes = wp_kses_post($_POST['notes'] ?? '');
     if (!$title || !$site_id) { wp_redirect(add_query_arg('hj_task','fail', wp_get_referer() ?: home_url('/tasks'))); exit; }
     $id = wp_insert_post([ 'post_type'=>'seo_task', 'post_title'=>$title, 'post_content'=>$content, 'post_status'=>'publish' ]);
     if (!is_wp_error($id)) {
         update_post_meta($id, 'related_site', $site_id);
-        update_post_meta($id, 'task_list', $list);
+        if ($term_id) wp_set_post_terms($id, [$term_id], 'seo_task_list', false);
         update_post_meta($id, 'priority', $priority);
         update_post_meta($id, 'status', 'todo');
         if ($due) update_post_meta($id, 'due_date', $due);
+        if ($notes) update_post_meta($id, 'notes', $notes);
         wp_redirect(add_query_arg('hj_task','ok', wp_get_referer() ?: home_url('/tasks')));
     } else {
         wp_redirect(add_query_arg('hj_task','fail', wp_get_referer() ?: home_url('/tasks')));
@@ -119,6 +133,53 @@ add_action('admin_post_hjseo_task_complete', function(){
     check_admin_referer('hjseo_task_complete');
     $task_id = (int)($_POST['task_id'] ?? 0);
     if ($task_id) update_post_meta($task_id, 'status', 'done');
+    wp_redirect(wp_get_referer() ?: home_url('/tasks'));
+    exit;
+});
+
+// Frontend Task edit handler
+add_action('admin_post_hjseo_task_edit', function(){
+    if (!current_user_can('manage_seo_tasks') && !current_user_can('administrator')) wp_die('Forbidden');
+    check_admin_referer('hjseo_task_edit');
+    $id = (int)($_POST['task_id'] ?? 0);
+    if (!$id) wp_die('Task missing');
+    $title = sanitize_text_field($_POST['title'] ?? '');
+    $site_id = (int)($_POST['site_id'] ?? 0);
+    $priority = sanitize_text_field($_POST['priority'] ?? 'medium');
+    $status = sanitize_text_field($_POST['status'] ?? 'todo');
+    $due = sanitize_text_field($_POST['due_date'] ?? '');
+    $notes = wp_kses_post($_POST['notes'] ?? '');
+    $term_id = (int)($_POST['task_list_term'] ?? 0);
+    if ($title) wp_update_post(['ID'=>$id,'post_title'=>$title]);
+    if ($site_id) update_post_meta($id,'related_site',$site_id);
+    update_post_meta($id,'priority',$priority);
+    update_post_meta($id,'status',$status);
+    update_post_meta($id,'due_date',$due);
+    update_post_meta($id,'notes',$notes);
+    if ($term_id) wp_set_post_terms($id, [$term_id], 'seo_task_list', false);
+    wp_redirect(wp_get_referer() ?: home_url('/tasks'));
+    exit;
+});
+
+// Frontend Task delete handler
+add_action('admin_post_hjseo_task_delete', function(){
+    if (!current_user_can('manage_seo_tasks') && !current_user_can('administrator')) wp_die('Forbidden');
+    check_admin_referer('hjseo_task_delete');
+    $task_id = (int)($_POST['task_id'] ?? 0);
+    if ($task_id) wp_delete_post($task_id, true);
+    wp_redirect(wp_get_referer() ?: home_url('/tasks'));
+    exit;
+});
+
+// Create new task list (taxonomy term) with site binding
+add_action('admin_post_hjseo_tasklist_create', function(){
+    if (!current_user_can('manage_seo_tasks') && !current_user_can('administrator')) wp_die('Forbidden');
+    check_admin_referer('hjseo_tasklist_create');
+    $name = sanitize_text_field($_POST['list_name'] ?? '');
+    $site_id = (int)($_POST['site_id'] ?? 0);
+    if (!$name || !$site_id) { wp_redirect(wp_get_referer() ?: home_url('/tasks')); exit; }
+    $term = wp_insert_term($name, 'seo_task_list');
+    if (!is_wp_error($term)) { update_term_meta($term['term_id'], 'related_site', $site_id); }
     wp_redirect(wp_get_referer() ?: home_url('/tasks'));
     exit;
 });
