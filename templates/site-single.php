@@ -7,12 +7,6 @@ if (!$site) { status_header(404); nocache_headers(); echo '<main class="containe
 setup_postdata($site);
 get_header();
 ?>
-<header class="site-header">
-  <div class="container">
-    <div class="brand"><span class="dot"></span> <span>HealingJourney SEO</span></div>
-    <nav><a href="/sites">Sites</a> · <a href="/reports">Reports</a></nav>
-  </div>
-</header>
 <main class="container">
   <h1 class="m-0"><?php echo esc_html($site->post_title); ?></h1>
   <div class="small"><?php echo esc_html(hjseo_field('site_domain', $site->ID) ?: hjseo_field('domain', $site->ID)); ?></div>

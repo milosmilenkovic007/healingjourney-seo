@@ -15,20 +15,8 @@ get_header();
   </div>
 </header>
 <main class="container">
-  <div class="flex items-center justify-between" style="margin-bottom: 2rem;">
-    <div>
-      <h1 class="m-0">All Sites</h1>
-      <p class="small" style="margin-top: 0.5rem;">Monitor and manage your SEO portfolio</p>
-    </div>
-    <a href="<?php echo esc_url(admin_url('post-new.php?post_type=seo_site')); ?>" class="hjseo-btn hjseo-btn-primary">
-      <span>➕</span> Add New Site
-    </a>
-  </div>
-  
-  <?php
-    $q = new WP_Query(['post_type' => 'seo_site', 'posts_per_page' => -1, 'orderby' => 'title', 'order' => 'ASC']);
-    if ($q->have_posts()):
-      echo '<div class="hjseo-sites-grid">';
+  get_header();
+  ?>
       while ($q->have_posts()): $q->the_post();
   $metrics = hjseo_get_site_metrics(get_the_ID());
   $domain = hjseo_field('site_domain');

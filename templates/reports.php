@@ -3,12 +3,6 @@
 if (!defined('ABSPATH')) { exit; }
 get_header();
 ?>
-<header class="site-header">
-  <div class="container">
-    <div class="brand"><span class="dot"></span> <span>HealingJourney SEO</span></div>
-    <nav><a href="/sites">Sites</a> · <a href="/reports">Reports</a></nav>
-  </div>
-</header>
 <main class="container">
   <h1 class="m-0">SEO Reports</h1>
   <form method="get" class="mt-24 flex items-center" style="gap:12px;">
