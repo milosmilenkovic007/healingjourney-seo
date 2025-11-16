@@ -29,3 +29,34 @@ function hjseo_seed_sites() {
 }
 // Uncomment to seed automatically on theme switch
 // add_action('after_switch_theme','hjseo_seed_sites');
+
+function hjseo_seed_tasks() {
+    // Get example users for assignment
+    $devs = get_users(['role'=>'seo_developer','number'=>1]);
+    $mgrs = get_users(['role'=>'seo_manager','number'=>1]);
+    $assignee = $devs ? $devs[0]->ID : 0;
+
+    $sites = get_posts(['post_type'=>'seo_site','posts_per_page'=>-1]);
+    foreach ($sites as $s) {
+        // Skip if tasks already exist
+        $existing = get_posts(['post_type'=>'seo_task','meta_key'=>'related_site','meta_value'=>$s->ID,'posts_per_page'=>1]);
+        if ($existing) continue;
+
+        $lists = [
+          ['Technical: Fix SSL mismatch', 'technical', 'urgent'],
+          ['Content: Write meta titles & descriptions', 'content', 'high'],
+          ['Backlinks: Outreach to 10 partners', 'backlinks', 'medium'],
+        ];
+        foreach ($lists as $i => $row) {
+            [$title, $list, $prio] = $row;
+            $id = wp_insert_post(['post_type'=>'seo_task','post_status'=>'publish','post_title'=>$title]);
+            if (is_wp_error($id) || !$id) continue;
+            update_post_meta($id,'related_site',$s->ID);
+            update_post_meta($id,'task_list',ucfirst($list));
+            update_post_meta($id,'priority',$prio);
+            update_post_meta($id,'status','todo');
+            update_post_meta($id,'due_date', date('Y-m-d', strtotime('+'.(7+($i*7)).' days')));
+            if ($assignee) update_post_meta($id,'assignee',$assignee);
+        }
+    }
+}

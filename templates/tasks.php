@@ -45,29 +45,30 @@ $sites = get_posts(['post_type'=>'seo_site','posts_per_page'=>-1]);
   <?php if ($can_manage): ?>
   <div class="card mt-24">
     <h3 class="m-0">Add Task</h3>
-    <form method="post" action="<?php echo esc_url( admin_url('admin-post.php') ); ?>" class="mt-16">
+    <form method="post" action="<?php echo esc_url( admin_url('admin-post.php') ); ?>" class="mt-16 hjseo-form tasks-form">
       <?php wp_nonce_field('hjseo_task_create'); ?>
       <input type="hidden" name="action" value="hjseo_task_create" />
-      <div class="grid grid-cols-4">
-        <div>
+      <div class="grid grid-cols-4" style="gap:16px;">
+        <div class="col-span-2">
           <label class="small">Title</label>
           <input type="text" name="title" class="input" required />
         </div>
-        <div>
+        <div class="col-span-2">
           <label class="small">Site</label>
-          <select name="site_id">
+          <select name="site_id" class="input">
             <?php foreach ($sites as $s): ?>
               <option value="<?php echo (int)$s->ID; ?>"><?php echo esc_html($s->post_title); ?></option>
             <?php endforeach; ?>
           </select>
         </div>
-        <div>
+
+        <div class="col-span-2">
           <label class="small">List</label>
           <input type="text" name="task_list" class="input" placeholder="Technical / Content / Backlinks" />
         </div>
         <div>
           <label class="small">Priority</label>
-          <select name="priority">
+          <select name="priority" class="input">
             <option value="low">Low</option>
             <option value="medium" selected>Medium</option>
             <option value="high">High</option>
@@ -78,12 +79,15 @@ $sites = get_posts(['post_type'=>'seo_site','posts_per_page'=>-1]);
           <label class="small">Due Date</label>
           <input type="date" name="due_date" class="input" />
         </div>
-        <div style="grid-column: span 4;">
+
+        <div class="col-span-4">
           <label class="small">Description</label>
-          <textarea name="content" rows="3" class="input"></textarea>
+          <textarea name="content" rows="4" class="input"></textarea>
         </div>
       </div>
-      <button class="btn mt-16" type="submit">Create Task</button>
+      <div class="flex" style="justify-content:flex-end; margin-top:16px;">
+        <button class="btn" type="submit">Create Task</button>
+      </div>
     </form>
   </div>
   <?php endif; ?>
@@ -105,7 +109,7 @@ $sites = get_posts(['post_type'=>'seo_site','posts_per_page'=>-1]);
         <td><?php echo esc_html(get_the_title($site_id)); ?></td>
         <td><?php echo esc_html($list ?: '—'); ?></td>
         <td><?php echo esc_html(get_the_title()); ?></td>
-        <td><?php echo esc_html(ucfirst($priority)); ?></td>
+        <td><span class="task-priority priority-<?php echo esc_attr($priority ?: 'medium'); ?>"><?php echo esc_html(ucfirst($priority)); ?></span></td>
         <td><?php echo esc_html(ucfirst(str_replace('inprogress','in progress',$status))); ?></td>
         <td><?php echo esc_html($due ?: '—'); ?></td>
         <td><?php echo $assignee ? esc_html( get_the_author_meta('display_name', (int)$assignee) ) : '—'; ?></td>
