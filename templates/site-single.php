@@ -21,30 +21,29 @@ get_header();
   <?php endif; ?>
 
   <div class="tabs">
-    <button class="tab active" data-tab="tab-reports">SEO Reports</button>
+    <button class="tab active" data-tab="tab-tasks">SEO Tasks</button>
     <button class="tab" data-tab="tab-keywords">Keyword Map</button>
     <button class="tab" data-tab="tab-content">Content Plan</button>
   </div>
 
-  <section id="tab-reports" class="tabpanel active">
+  <section id="tab-tasks" class="tabpanel active">
     <?php
-  $r = new WP_Query(['post_type' => 'seo_report', 'posts_per_page' => -1, 'meta_query' => [ [ 'key' => 'related_site', 'value' => $site->ID ] ], 'orderby' => 'date', 'order' => 'DESC']);
-      if ($r->have_posts()):
-        echo '<div class="table-wrap"><table class="table"><thead><tr><th>Month</th><th>Technical</th><th>On-page</th><th>Backlinks</th><th>Summary</th></tr></thead><tbody>';
-        while ($r->have_posts()): $r->the_post();
-          $month = hjseo_field('month');
-          echo '<tr>'
-            . '<td>' . esc_html($month) . '</td>'
-            . '<td>' . esc_html(wp_trim_words(wp_strip_all_tags(hjseo_field('technical_analysis')), 10)) . '</td>'
-            . '<td>' . esc_html(wp_trim_words(wp_strip_all_tags(hjseo_field('onpage_analysis')), 10)) . '</td>'
-            . '<td>' . esc_html(wp_trim_words(wp_strip_all_tags(hjseo_field('backlink_analysis')), 10)) . '</td>'
-            . '<td>' . esc_html(wp_trim_words(wp_strip_all_tags(hjseo_field('performance_summary')), 12)) . '</td>'
-            . '</tr>';
-        endwhile; wp_reset_postdata();
-        echo '</tbody></table></div>';
-      else:
-        echo '<p>No reports yet.</p>';
-      endif;
+      $tasks = new WP_Query(['post_type'=>'seo_task','posts_per_page'=>-1,'meta_query'=>[[ 'key'=>'related_site','value'=>$site->ID ]],'orderby'=>'date','order'=>'DESC']);
+      echo '<div class="table-wrap"><table class="table"><thead><tr><th>List</th><th>Title</th><th>Priority</th><th>Status</th><th>Due</th></tr></thead><tbody>';
+      if ($tasks->have_posts()): while ($tasks->have_posts()): $tasks->the_post();
+        $list = hjseo_field('task_list');
+        $priority = hjseo_field('priority');
+        $status = hjseo_field('status');
+        $due = hjseo_field('due_date');
+        echo '<tr>'
+          . '<td>' . esc_html($list ?: '—') . '</td>'
+          . '<td>' . esc_html(get_the_title()) . '</td>'
+          . '<td>' . esc_html(ucfirst($priority)) . '</td>'
+          . '<td>' . esc_html(ucfirst(str_replace('inprogress','in progress',$status))) . '</td>'
+          . '<td>' . esc_html($due ?: '—') . '</td>'
+        . '</tr>';
+      endwhile; wp_reset_postdata(); else: echo '<tr><td colspan="5">No tasks yet.</td></tr>'; endif;
+      echo '</tbody></table></div>';
     ?>
   </section>
 

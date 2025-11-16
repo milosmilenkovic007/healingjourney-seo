@@ -19,6 +19,17 @@ add_action('after_setup_theme', function () {
     add_theme_support('title-tag');
     add_theme_support('post-thumbnails');
     add_theme_support('html5', ['search-form','comment-form','comment-list','gallery','caption','style','script']);
+    // Ensure custom roles for task management
+    if (!get_role('seo_manager')) {
+        add_role('seo_manager', 'SEO Manager', [ 'read' => true ]);
+    }
+    if (!get_role('seo_developer')) {
+        add_role('seo_developer', 'SEO Developer', [ 'read' => true ]);
+    }
+    // Add custom caps
+    if ($r = get_role('seo_manager')) { $r->add_cap('manage_seo_tasks'); }
+    if ($r = get_role('seo_developer')) { $r->add_cap('complete_seo_tasks'); }
+    if ($r = get_role('administrator')) { $r->add_cap('manage_seo_tasks'); $r->add_cap('complete_seo_tasks'); }
 });
 
 // Enqueue assets
@@ -65,6 +76,52 @@ foreach ($hjseo_includes as $file) {
         require_once $path;
     }
 }
+
+// Block wp-admin for non-admin users (frontend-only editing)
+add_action('admin_init', function(){
+    if (!current_user_can('administrator') && !wp_doing_ajax()) {
+        $pagenow = isset($GLOBALS['pagenow']) ? $GLOBALS['pagenow'] : '';
+        if ($pagenow !== 'admin-ajax.php') {
+            wp_redirect(home_url('/'));
+            exit;
+        }
+    }
+});
+
+// Frontend Task create handler
+add_action('admin_post_hjseo_task_create', function(){
+    if (!current_user_can('manage_seo_tasks') && !current_user_can('administrator')) wp_die('Forbidden');
+    check_admin_referer('hjseo_task_create');
+    $title = sanitize_text_field($_POST['title'] ?? '');
+    $content = wp_kses_post($_POST['content'] ?? '');
+    $site_id = (int)($_POST['site_id'] ?? 0);
+    $list = sanitize_text_field($_POST['task_list'] ?? '');
+    $priority = sanitize_text_field($_POST['priority'] ?? 'medium');
+    $due = sanitize_text_field($_POST['due_date'] ?? '');
+    if (!$title || !$site_id) { wp_redirect(add_query_arg('hj_task','fail', wp_get_referer() ?: home_url('/tasks'))); exit; }
+    $id = wp_insert_post([ 'post_type'=>'seo_task', 'post_title'=>$title, 'post_content'=>$content, 'post_status'=>'publish' ]);
+    if (!is_wp_error($id)) {
+        update_post_meta($id, 'related_site', $site_id);
+        update_post_meta($id, 'task_list', $list);
+        update_post_meta($id, 'priority', $priority);
+        update_post_meta($id, 'status', 'todo');
+        if ($due) update_post_meta($id, 'due_date', $due);
+        wp_redirect(add_query_arg('hj_task','ok', wp_get_referer() ?: home_url('/tasks')));
+    } else {
+        wp_redirect(add_query_arg('hj_task','fail', wp_get_referer() ?: home_url('/tasks')));
+    }
+    exit;
+});
+
+// Frontend Task complete handler
+add_action('admin_post_hjseo_task_complete', function(){
+    if (!current_user_can('complete_seo_tasks') && !current_user_can('manage_seo_tasks') && !current_user_can('administrator')) wp_die('Forbidden');
+    check_admin_referer('hjseo_task_complete');
+    $task_id = (int)($_POST['task_id'] ?? 0);
+    if ($task_id) update_post_meta($task_id, 'status', 'done');
+    wp_redirect(wp_get_referer() ?: home_url('/tasks'));
+    exit;
+});
 
 // Activation/deactivation hooks for rewrite rules
 add_action('after_switch_theme', function () {

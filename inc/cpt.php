@@ -22,6 +22,16 @@ add_action('init', function() {
     'rewrite' => ['slug' => 'seo-report'],
   ]);
 
+  // Tasks
+  register_post_type('seo_task', [
+    'label' => 'SEO Tasks',
+    'public' => true,
+    'show_in_rest' => true,
+    'menu_icon' => 'dashicons-yes-alt',
+    'supports' => ['title','editor'],
+    'rewrite' => ['slug' => 'seo-task'],
+  ]);
+
   // Keyword Maps
   register_post_type('keyword_map', [
     'label' => 'Keyword Maps',
