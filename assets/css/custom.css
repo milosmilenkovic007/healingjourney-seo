@@ -23,6 +23,17 @@
     background: rgba(255,255,255,0.12);
     color: #e0e7ff;
 }
+
+/* Footer */
+.site-footer {
+    background: var(--card);
+    border-top: 1px solid #e2e8f0;
+    padding: 24px 0;
+}
+.site-footer .brand { color: var(--text); }
+.site-footer a { color: var(--muted); }
+.site-footer a:hover { color: var(--accent); text-decoration: none; }
+.site-footer .footer-copy { margin-left: auto; }
 /* Additional theme styles (extendable) */
 .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; background: rgba(127,211,218,.15); color: #7fd3da; font-size: 12px; }
 
