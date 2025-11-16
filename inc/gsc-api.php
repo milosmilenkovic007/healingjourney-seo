@@ -85,25 +85,62 @@ function hjseo_gsc_summary(string $property, string $start, string $end) {
     $property = trim($property);
     if ($property === '') return new WP_Error('gsc_property', 'Empty GSC property');
 
-    // Build property variants to try (with/without trailing slash + http/https for URL properties)
-    $variants = [$property];
-    if (preg_match('~^https?://~i', $property)) {
-        // Add trailing slash variant
-        if (substr($property, -1) === '/') {
-            $variants[] = rtrim($property, '/');
-        } else {
-            $variants[] = $property . '/';
+    // Build property variants to try
+    $variants = [];
+
+    $is_domain_prop = stripos($property, 'sc-domain:') === 0;
+    $is_url_prop = preg_match('~^https?://~i', $property) === 1;
+
+    // Helper to push unique variants keeping order
+    $push = function($v) use (&$variants) {
+        $v = rtrim($v);
+        if ($v === '') return;
+        if (!in_array($v, $variants, true)) $variants[] = $v;
+    };
+
+    if ($is_domain_prop) {
+        $domain = trim(substr($property, strlen('sc-domain:')));
+        $push('sc-domain:' . $domain);
+        // Try common URL-prefix representations for the same domain (with and without www)
+        foreach (['https://', 'http://'] as $scheme) {
+            foreach ([$domain, (stripos($domain, 'www.') === 0 ? substr($domain, 4) : 'www.' . $domain)] as $host) {
+                $push($scheme . $host . '/');
+            }
         }
-        // Add http/https variants
+    } elseif ($is_url_prop) {
+        // Start with original URL and its slash variant
+        $push($property);
+        $push(substr($property, -1) === '/' ? rtrim($property, '/') : $property . '/');
+        // http/https swap
         if (stripos($property, 'https://') === 0) {
-            $http = str_replace('https://', 'http://', $property);
-            $variants[] = $http;
-            $variants[] = rtrim($http, '/');
-        } elseif (stripos($property, 'http://') === 0) {
-            $https = str_replace('http://', 'https://', $property);
-            $variants[] = $https;
-            $variants[] = rtrim($https, '/');
+            $http = 'http://' . substr($property, 8);
+            $push($http);
+            $push(rtrim($http, '/'));
+        } else {
+            $https = 'https://' . substr($property, 7);
+            $push($https);
+            $push(rtrim($https, '/'));
         }
+        // Also try sc-domain derived from host
+        $host = parse_url($property, PHP_URL_HOST);
+        if ($host) $push('sc-domain:' . $host);
+    } else {
+        // Bare domain or malformed value — construct robust variants
+        $domain = preg_replace('~^https?://~i', '', $property);
+        $domain = rtrim($domain, '/');
+        $domain = trim($domain);
+        if ($domain) {
+            $push('sc-domain:' . $domain);
+            foreach (['https://', 'http://'] as $scheme) {
+                foreach ([$domain, (stripos($domain, 'www.') === 0 ? substr($domain, 4) : 'www.' . $domain)] as $host) {
+                    $push($scheme . $host . '/');
+                }
+            }
+        }
+    }
+
+    if (function_exists('hjseo_debug_log')) {
+        hjseo_debug_log('GSC property_variants', ['original' => $property, 'variants' => $variants]);
     }
 
     $body = [
@@ -131,7 +168,11 @@ function hjseo_gsc_summary(string $property, string $start, string $end) {
         $code = wp_remote_retrieve_response_code($res);
         if ($code === 429) return new WP_Error('gsc_429', 'Rate limited by Google');
         if ($code >= 400) {
-            $last_error = new WP_Error('gsc_http_' . $code, wp_remote_retrieve_body($res));
+            $body_raw = wp_remote_retrieve_body($res);
+            if (function_exists('hjseo_debug_log')) {
+                hjseo_debug_log('GSC error', ['variant' => $prop, 'code' => $code, 'body' => $body_raw]);
+            }
+            $last_error = new WP_Error('gsc_http_' . $code, $body_raw);
             continue;
         }
         // Success
