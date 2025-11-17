@@ -51,13 +51,75 @@
 /* Modal */
 .hjseo-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: grid; place-items: center; padding: 24px; z-index: 9999; }
 .hjseo-modal[hidden] { display: none; }
-.hjseo-modal-card { background: #fff; border-radius: 12px; box-shadow: var(--shadow-lg); width: min(960px, 96vw); padding: 24px; }
+.hjseo-modal-card { background: #fff; border-radius: 12px; box-shadow: var(--shadow-lg); width: min(1100px, 96vw); padding: 24px; max-height: 90vh; overflow: auto; }
 
-/* Tab panels active state */
-.tabpanel { display: none; }
-.tabpanel.active { display: block; }
-.tabs .tab { background: transparent; color: var(--muted); border: none; padding: 10px 14px; border-radius: 10px 10px 0 0; cursor: pointer; }
-.tabs .tab.active { background: var(--accent); color: #fff; }
+/* --- Modal Form Professional Styling --- */
+.tasks-form .input, .tasks-form select, .tasks-form textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: #f9fafb;
+  color: #1a202c;
+  margin-bottom: 10px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.tasks-form .input:focus, .tasks-form select:focus, .tasks-form textarea:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 2px #a5b4fc33;
+  outline: none;
+}
+.tasks-form label.small {
+  font-size: 0.95rem;
+  color: #4b5563;
+  font-weight: 500;
+  margin-bottom: 4px;
+  display: block;
+}
+.tasks-form .btn {
+  padding: 0.75rem 2rem;
+  font-size: 1rem;
+  border-radius: 8px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.tasks-form .btn:hover {
+  box-shadow: 0 4px 16px #667eea33;
+  transform: translateY(-2px);
+}
+.hjseo-modal-card {
+  box-shadow: 0 8px 32px rgba(102,126,234,0.12);
+  border-radius: 16px;
+  padding: 32px;
+}
+.tasks-form .flex {
+  gap: 12px;
+}
+.tasks-form .col-span-2, .tasks-form .col-span-4 {
+  margin-bottom: 8px;
+}
+.tasks-form textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+/* --- End Modal Form Styling --- */
+
+/* Modal form responsive grid and controls */
+.hjseo-modal .grid.grid-cols-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.tasks-form select.input,
+.tasks-form input[type="date"].input,
+.tasks-form input[type="text"].input { height: 44px; }
+.tasks-form select.input { -webkit-appearance: none; -moz-appearance: none; appearance: none; background-color: #f9fafb; }
+@media (max-width: 960px) {
+    .hjseo-modal .grid.grid-cols-4 { grid-template-columns: 1fr; }
+    .hjseo-modal-card { width: min(96vw, 900px); }
+}
+
 /* Additional theme styles (extendable) */
 .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; background: rgba(127,211,218,.15); color: #7fd3da; font-size: 12px; }
 

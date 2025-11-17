@@ -53,9 +53,9 @@ add_action('wp_enqueue_scripts', function () {
             $site_id = (int) get_term_meta($t->term_id, 'related_site', true);
             $payload[] = [ 'term_id'=>$t->term_id, 'name'=>$t->name, 'site_id'=>$site_id ];
         }
-        // Embed into body attribute via inline script
+        // Embed into body attribute via inline script as JSON string
         $json = wp_json_encode($payload);
-        wp_add_inline_script('hjseo-main', 'document.body.setAttribute("data-tasklists",'. $json .');', 'before');
+        wp_add_inline_script('hjseo-main', 'document.body.setAttribute("data-tasklists", JSON.stringify('. $json .'));', 'before');
     }
 });
 

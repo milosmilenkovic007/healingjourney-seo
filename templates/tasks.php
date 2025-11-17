@@ -184,7 +184,17 @@ $sites = get_posts(['post_type'=>'seo_site','posts_per_page'=>-1]);
   function $all(s,root){return Array.prototype.slice.call((root||document).querySelectorAll(s));}
   function openModal(id){var m=$(id); if(m){m.hidden=false;}}
   function closeModal(id){var m=$(id); if(m){m.hidden=true;}}
-  var btnNew=$('#btn-open-new-task'); if(btnNew){btnNew.addEventListener('click',function(){openModal('#modal-new-task'); populateLists('#newtask-list-select');});}
+  var btnNew=$('#btn-open-new-task'); if(btnNew){btnNew.addEventListener('click',function(){
+    openModal('#modal-new-task');
+    var siteSel = document.querySelector('#modal-new-task select[name="site_id"]');
+    var siteVal = siteSel ? siteSel.value : null;
+    populateLists('#newtask-list-select', siteVal);
+    if (siteSel) {
+      siteSel.addEventListener('change', function(){
+        populateLists('#newtask-list-select', this.value);
+      });
+    }
+  });}
   var btnList=$('#btn-open-new-list'); if(btnList){btnList.addEventListener('click',function(){openModal('#modal-new-list');});}
   $all('[data-close-modal]').forEach(function(b){b.addEventListener('click',function(){closeModal(b.getAttribute('data-close-modal'));});});
   // Edit modal populate
