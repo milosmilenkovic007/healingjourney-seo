@@ -30,6 +30,12 @@ add_action('after_setup_theme', function () {
     if ($r = get_role('seo_manager')) { $r->add_cap('manage_seo_tasks'); }
     if ($r = get_role('seo_developer')) { $r->add_cap('complete_seo_tasks'); }
     if ($r = get_role('administrator')) { $r->add_cap('manage_seo_tasks'); $r->add_cap('complete_seo_tasks'); }
+    // Content role for keyword maps and content plans
+    if (!get_role('seo_content')) {
+        add_role('seo_content', 'Content Editor', [ 'read' => true ]);
+    }
+    if ($r = get_role('seo_content')) { $r->add_cap('manage_content_entries'); }
+    if ($r = get_role('administrator')) { $r->add_cap('manage_content_entries'); }
 });
 
 // Enqueue assets
@@ -181,6 +187,116 @@ add_action('admin_post_hjseo_tasklist_create', function(){
     $term = wp_insert_term($name, 'seo_task_list');
     if (!is_wp_error($term)) { update_term_meta($term['term_id'], 'related_site', $site_id); }
     wp_redirect(wp_get_referer() ?: home_url('/tasks'));
+    exit;
+});
+
+// Settings: update API keys (OpenAI)
+add_action('admin_post_hjseo_update_api_keys', function(){
+    if (!current_user_can('administrator')) wp_die('Forbidden');
+    check_admin_referer('hjseo_update_api_keys');
+    $openai = sanitize_text_field($_POST['openai_api_key'] ?? '');
+    update_option('hjseo_openai_api_key', $openai);
+    wp_redirect(wp_get_referer() ?: home_url('/settings'));
+    exit;
+});
+
+// Settings: update user profile
+add_action('admin_post_hjseo_update_user', function(){
+    if (!is_user_logged_in()) wp_die('Forbidden');
+    check_admin_referer('hjseo_update_user');
+    $uid = get_current_user_id();
+    $args = ['ID'=>$uid];
+    if (!empty($_POST['display_name'])) $args['display_name'] = sanitize_text_field($_POST['display_name']);
+    if (!empty($_POST['user_email'])) $args['user_email'] = sanitize_email($_POST['user_email']);
+    if (!empty($_POST['user_pass'])) {
+        if (($_POST['user_pass'] ?? '') === ($_POST['user_pass2'] ?? '')) $args['user_pass'] = $_POST['user_pass'];
+    }
+    wp_update_user($args);
+    wp_redirect(wp_get_referer() ?: home_url('/settings'));
+    exit;
+});
+
+// Task list delete
+add_action('admin_post_hjseo_tasklist_delete', function(){
+    if (!current_user_can('manage_seo_tasks') && !current_user_can('administrator')) wp_die('Forbidden');
+    check_admin_referer('hjseo_tasklist_delete');
+    $term_id = (int)($_POST['term_id'] ?? 0);
+    if ($term_id) wp_delete_term($term_id, 'seo_task_list');
+    wp_redirect(wp_get_referer() ?: home_url('/settings'));
+    exit;
+});
+
+// Add Site (frontend modal)
+add_action('admin_post_hjseo_add_site', function(){
+    if (!current_user_can('manage_seo_tasks') && !current_user_can('administrator')) wp_die('Forbidden');
+    check_admin_referer('hjseo_add_site');
+    $domain = sanitize_text_field($_POST['site_domain'] ?? '');
+    $prop = sanitize_text_field($_POST['gsc_property'] ?? '');
+    if (!$domain || !$prop) { wp_redirect(wp_get_referer() ?: home_url('/')); exit; }
+    // Normalize title as domain only
+    $title = preg_replace('~^https?://~i','',$domain); $title = rtrim($title,'/');
+    $post_id = wp_insert_post(['post_type'=>'seo_site','post_status'=>'publish','post_title'=>$title,'post_name'=>sanitize_title($title)]);
+    if (!is_wp_error($post_id)) {
+        update_post_meta($post_id,'site_domain',$domain);
+        update_post_meta($post_id,'gsc_property',$prop);
+        update_post_meta($post_id,'active','1');
+    }
+    wp_redirect(home_url('/sites'));
+    exit;
+});
+
+// Frontend: create keyword map from CSV
+add_action('admin_post_hjseo_kwmap_create', function(){
+    if (!current_user_can('manage_seo_tasks') && !current_user_can('manage_content_entries') && !current_user_can('administrator')) wp_die('Forbidden');
+    check_admin_referer('hjseo_kwmap_create');
+    $site_id = (int)($_POST['site_id'] ?? 0);
+    $csv = trim((string)($_POST['csv'] ?? ''));
+    if (!$site_id || !$csv) { wp_redirect(wp_get_referer() ?: home_url('/')); exit; }
+    $post_id = wp_insert_post(['post_type'=>'keyword_map','post_title'=>'Keyword Map '.date('Y-m-d'),'post_status'=>'publish']);
+    if (is_wp_error($post_id)) { wp_redirect(wp_get_referer()); exit; }
+    update_post_meta($post_id,'related_site',$site_id);
+    $rows = [];
+    foreach (preg_split('/\r?\n/', $csv) as $line) {
+        $cols = array_map('trim', str_getcsv($line));
+        if (count($cols) < 2 || !$cols[0]) continue;
+        $rows[] = [
+          'keyword' => $cols[0],
+          'url' => $cols[1] ?? '',
+          'search_volume' => (int)($cols[2] ?? 0),
+          'difficulty' => (int)($cols[3] ?? 0),
+          'intent' => $cols[4] ?? '',
+          'ctr_potential' => (float)($cols[5] ?? 0),
+          'notes' => $cols[6] ?? '',
+        ];
+    }
+    if ($rows) update_field('keywords', $rows, $post_id);
+    wp_redirect(wp_get_referer() ?: home_url('/'));
+    exit;
+});
+
+// Frontend: create content plan item
+add_action('admin_post_hjseo_contentplan_create', function(){
+    if (!current_user_can('manage_seo_tasks') && !current_user_can('manage_content_entries') && !current_user_can('administrator')) wp_die('Forbidden');
+    check_admin_referer('hjseo_contentplan_create');
+    $site_id = (int)($_POST['site_id'] ?? 0);
+    $week = sanitize_text_field($_POST['week'] ?? '');
+    $title = sanitize_text_field($_POST['blog_title'] ?? '');
+    $keyword = sanitize_text_field($_POST['keyword_focus'] ?? '');
+    $goal = sanitize_text_field($_POST['goal'] ?? '');
+    $format = sanitize_text_field($_POST['format'] ?? '');
+    $cta = sanitize_text_field($_POST['cta'] ?? '');
+    if (!$site_id || !$title) { wp_redirect(wp_get_referer() ?: home_url('/')); exit; }
+    $post_id = wp_insert_post(['post_type'=>'content_plan','post_title'=>$title,'post_status'=>'publish']);
+    if (!is_wp_error($post_id)) {
+        update_post_meta($post_id,'related_site',$site_id);
+        update_post_meta($post_id,'week',$week);
+        update_post_meta($post_id,'blog_title',$title);
+        update_post_meta($post_id,'keyword_focus',$keyword);
+        update_post_meta($post_id,'goal',$goal);
+        update_post_meta($post_id,'format',$format);
+        update_post_meta($post_id,'cta',$cta);
+    }
+    wp_redirect(wp_get_referer() ?: home_url('/'));
     exit;
 });
 

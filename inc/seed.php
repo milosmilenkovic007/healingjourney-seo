@@ -60,3 +60,34 @@ function hjseo_seed_tasks() {
         }
     }
 }
+
+/** Ensure default Task Lists per site and assign tasks to lists */
+function hjseo_seed_task_lists_and_assign() {
+    $sites = get_posts(['post_type'=>'seo_site','posts_per_page'=>-1]);
+    foreach ($sites as $s) {
+        // Ensure lists
+        $list_names = ['Technical','Content','Backlinks'];
+        $terms_for_site = [];
+        foreach ($list_names as $name) {
+            $term = get_term_by('name', $name, 'seo_task_list');
+            if (!$term || (int)get_term_meta($term->term_id,'related_site',true)!==$s->ID) {
+                $created = wp_insert_term($name, 'seo_task_list');
+                if (!is_wp_error($created)) { update_term_meta($created['term_id'],'related_site',$s->ID); $terms_for_site[$name] = (int)$created['term_id']; }
+            } else {
+                $terms_for_site[$name] = (int)$term->term_id;
+            }
+        }
+        // Assign unassigned tasks by title heuristic
+        $tasks = get_posts(['post_type'=>'seo_task','posts_per_page'=>-1,'meta_key'=>'related_site','meta_value'=>$s->ID]);
+        foreach ($tasks as $t) {
+            $has = wp_get_post_terms($t->ID,'seo_task_list');
+            if ($has) continue;
+            $title = $t->post_title;
+            $term_id = 0;
+            if (stripos($title,'Technical')===0 && isset($terms_for_site['Technical'])) $term_id = $terms_for_site['Technical'];
+            elseif (stripos($title,'Content')===0 && isset($terms_for_site['Content'])) $term_id = $terms_for_site['Content'];
+            elseif (stripos($title,'Backlinks')===0 && isset($terms_for_site['Backlinks'])) $term_id = $terms_for_site['Backlinks'];
+            if ($term_id) wp_set_post_terms($t->ID, [$term_id], 'seo_task_list', false);
+        }
+    }
+}

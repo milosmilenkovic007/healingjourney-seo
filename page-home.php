@@ -51,13 +51,13 @@ $avg_visibility = $site_count > 0 ? round($total_visibility / $site_count, 2) : 
             <p>Here's your SEO performance overview</p>
         </div>
         <div class="hjseo-dashboard-actions">
-            <a href="<?php echo esc_url(admin_url('post-new.php?post_type=seo_site')); ?>" class="hjseo-btn hjseo-btn-primary">
+            <button id="btn-open-add-site" class="hjseo-btn hjseo-btn-primary" type="button">
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"/>
                 </svg>
                 Add Site
-            </a>
-            <a href="<?php echo esc_url(admin_url('options-general.php?page=hjseo-settings')); ?>" class="hjseo-btn hjseo-btn-secondary">
+            </button>
+            <a href="<?php echo esc_url(home_url('/settings')); ?>" class="hjseo-btn hjseo-btn-secondary">
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
                     <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/>
                 </svg>
@@ -167,10 +167,37 @@ $avg_visibility = $site_count > 0 ? round($total_visibility / $site_count, 2) : 
                 </svg>
                 <h3>No sites yet</h3>
                 <p>Add your first site to start tracking SEO metrics</p>
-                <a href="<?php echo esc_url(admin_url('post-new.php?post_type=seo_site')); ?>" class="hjseo-btn hjseo-btn-primary">Add Site</a>
+                                <button id="btn-open-add-site-empty" class="hjseo-btn hjseo-btn-primary" type="button">Add Site</button>
             </div>
         <?php endif; ?>
     </div>
 </div>
+
+<!-- Add Site Modal -->
+<div class="hjseo-modal" id="modal-add-site" hidden>
+    <div class="hjseo-modal-card">
+        <h3 class="m-0">Add New Site</h3>
+        <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" class="mt-16 hjseo-form tasks-form">
+            <?php wp_nonce_field('hjseo_add_site'); ?>
+            <input type="hidden" name="action" value="hjseo_add_site" />
+            <div class="grid grid-cols-4" style="gap:16px;">
+                <div class="col-span-2"><label class="small">Site Domain</label><input type="text" name="site_domain" class="input" placeholder="example.com" required /></div>
+                <div class="col-span-2"><label class="small">GSC Property</label><input type="text" name="gsc_property" class="input" placeholder="https://example.com/ or sc-domain:example.com" required /></div>
+            </div>
+            <div class="flex" style="justify-content:flex-end; gap:8px; margin-top:16px;">
+                <button type="button" class="btn" data-close-modal="#modal-add-site">Cancel</button>
+                <button class="btn" type="submit">Create</button>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+(function(){
+    function openModal(){ var m=document.getElementById('modal-add-site'); if(m) m.hidden=false; }
+    var a=document.getElementById('btn-open-add-site'); if(a) a.addEventListener('click', openModal);
+    var b=document.getElementById('btn-open-add-site-empty'); if(b) b.addEventListener('click', openModal);
+    document.querySelectorAll('[data-close-modal]').forEach(function(x){ x.addEventListener('click', function(){ var id=x.getAttribute('data-close-modal'); var el=document.querySelector(id); if(el) el.hidden=true; }); });
+})();
+</script>
 
 <?php get_footer(); ?>

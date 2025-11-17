@@ -52,6 +52,12 @@
 .hjseo-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: grid; place-items: center; padding: 24px; z-index: 9999; }
 .hjseo-modal[hidden] { display: none; }
 .hjseo-modal-card { background: #fff; border-radius: 12px; box-shadow: var(--shadow-lg); width: min(960px, 96vw); padding: 24px; }
+
+/* Tab panels active state */
+.tabpanel { display: none; }
+.tabpanel.active { display: block; }
+.tabs .tab { background: transparent; color: var(--muted); border: none; padding: 10px 14px; border-radius: 10px 10px 0 0; cursor: pointer; }
+.tabs .tab.active { background: var(--accent); color: #fff; }
 /* Additional theme styles (extendable) */
 .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; background: rgba(127,211,218,.15); color: #7fd3da; font-size: 12px; }
 

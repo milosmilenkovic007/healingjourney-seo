@@ -75,6 +75,17 @@ get_header();
       else:
         echo '<p>No keyword map.</p>';
       endif;
+      if (current_user_can('manage_seo_tasks') || current_user_can('manage_content_entries') || current_user_can('administrator')) {
+        echo '<div class="card mt-24"><h3 class="m-0">Add Keyword Map</h3>';
+        echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '" class="mt-16">';
+        wp_nonce_field('hjseo_kwmap_create');
+        echo '<input type="hidden" name="action" value="hjseo_kwmap_create" />';
+        echo '<input type="hidden" name="site_id" value="' . (int)$site->ID . '" />';
+        echo '<label class="small">CSV rows (keyword,url,volume,diff,intent,ctr,notes)</label>';
+        echo '<textarea name="csv" rows="6" class="input"></textarea>';
+        echo '<div class="flex" style="justify-content:flex-end; margin-top:12px;"><button class="btn" type="submit">Create Keyword Map</button></div>';
+        echo '</form></div>';
+      }
     ?>
   </section>
 
@@ -92,6 +103,23 @@ get_header();
             . '</div>';
         endwhile; echo '</div>'; wp_reset_postdata();
       else: echo '<p>No content plan items.</p>'; endif;
+      if (current_user_can('manage_seo_tasks') || current_user_can('manage_content_entries') || current_user_can('administrator')) {
+        echo '<div class="card mt-24"><h3 class="m-0">Add Content Plan Item</h3>';
+        echo '<form method="post" action="' . esc_url(admin_url('admin-post.php')) . '" class="mt-16">';
+        wp_nonce_field('hjseo_contentplan_create');
+        echo '<input type="hidden" name="action" value="hjseo_contentplan_create" />';
+        echo '<input type="hidden" name="site_id" value="' . (int)$site->ID . '" />';
+        echo '<div class="grid grid-cols-4" style="gap:12px;">';
+        echo '<div><label class="small">Week</label><input class="input" name="week" placeholder="2025-W45" /></div>';
+        echo '<div class="col-span-3"><label class="small">Blog Title</label><input class="input" name="blog_title" /></div>';
+        echo '<div><label class="small">Keyword Focus</label><input class="input" name="keyword_focus" /></div>';
+        echo '<div><label class="small">Format</label><input class="input" name="format" placeholder="Article/Video" /></div>';
+        echo '<div class="col-span-2"><label class="small">Goal</label><input class="input" name="goal" /></div>';
+        echo '<div class="col-span-4"><label class="small">CTA</label><input class="input" name="cta" /></div>';
+        echo '</div>';
+        echo '<div class="flex" style="justify-content:flex-end; margin-top:12px;"><button class="btn" type="submit">Add Item</button></div>';
+        echo '</form></div>';
+      }
     ?>
   </section>
 </main>
